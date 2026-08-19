@@ -1,0 +1,284 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { estimateMacros } from "@/lib/macros.functions";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { BackNav } from "@/components/back-nav";
+import { DateNav, todayISO } from "@/components/date-nav";
+
+export const Route = createFileRoute("/_authenticated/macros")({
+  head: () => ({
+    meta: [
+      { title: "Log macro — GAINZ" },
+      {
+        name: "description",
+        content:
+          "Scrivi cosa hai mangiato in italiano normale: l'AI stima kcal, proteine, carboidrati e grassi e li confronta con i tuoi target.",
+      },
+      { property: "og:title", content: "Log macro — GAINZ" },
+      {
+        property: "og:description",
+        content: "Stima automatica dei macro e confronto con i target giornalieri.",
+      },
+    ],
+  }),
+  component: Macros,
+});
+
+
+const r = (n: number) => Math.round(n);
+
+type Estimate = {
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  items: string[];
+};
+
+function Macros() {
+  const queryClient = useQueryClient();
+  const estimate = useServerFn(estimateMacros);
+  const [text, setText] = useState("");
+  const [draft, setDraft] = useState<Estimate | null>(null);
+  const [date, setDate] = useState(todayISO());
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userData.user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: meals = [] } = useQuery({
+    queryKey: ["meals", date],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("meals")
+        .select("*")
+        .eq("date", date)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const estimateMutation = useMutation({
+    mutationFn: async () => (await estimate({ data: { text } })) as Estimate,
+    onSuccess: (d) => setDraft(d),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Stima fallita"),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (e: Estimate) => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Sessione scaduta");
+      const { error } = await supabase.from("meals").insert({
+        user_id: userData.user.id,
+        date,
+        description: text.trim(),
+        kcal: r(e.kcal),
+        protein_g: r(e.protein_g),
+        carbs_g: r(e.carbs_g),
+        fat_g: r(e.fat_g),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setText("");
+      setDraft(null);
+      queryClient.invalidateQueries({ queryKey: ["meals", date] });
+      toast.success("Pasto salvato");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Salvataggio fallito"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("meals").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["meals", date] }),
+  });
+
+  const total = meals.reduce(
+    (acc, m) => ({
+      kcal: acc.kcal + Number(m.kcal),
+      protein_g: acc.protein_g + Number(m.protein_g),
+      carbs_g: acc.carbs_g + Number(m.carbs_g),
+      fat_g: acc.fat_g + Number(m.fat_g),
+    }),
+    { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+  );
+
+  const targetKcal = profile?.target_kcal ?? null;
+  const targetProt = profile?.target_protein_g ?? null;
+  const remKcal = targetKcal != null ? targetKcal - total.kcal : null;
+  const remProt = targetProt != null ? targetProt - total.protein_g : null;
+
+  const bars = [
+    { label: "Kcal", value: total.kcal, target: targetKcal, unit: "kcal" },
+    { label: "Proteine", value: total.protein_g, target: targetProt, unit: "g" },
+    { label: "Carboidrati", value: total.carbs_g, target: null, unit: "g" },
+    { label: "Grassi", value: total.fat_g, target: null, unit: "g" },
+  ];
+
+  function advice() {
+    if (remKcal == null || remProt == null)
+      return "Imposta i target in onboarding per ricevere i consigli sul residuo giornaliero.";
+    if (remKcal <= 0 && remProt <= 0)
+      return "Target raggiunti. Da qui in poi tieni leggero: acqua, verdura, eventualmente una fonte proteica magra.";
+    if (remProt > 0 && remKcal <= 100)
+      return `Ti mancano ${r(remProt)} g di proteine ma hai quasi finito le kcal: punta su fonti magre — albumi, fiocchi di latte, petto di pollo o un whey in acqua.`;
+    if (remProt <= 0)
+      return `Proteine a posto. Restano ${r(remKcal)} kcal: completale con carboidrati (riso, pane, frutta) o grassi buoni.`;
+    return `Mancano ${r(remKcal)} kcal e ${r(remProt)} g di proteine: una porzione da ~${Math.max(100, Math.round((remProt / 30) * 100))} g di fonte proteica magra più un contorno di carboidrati chiude la giornata.`;
+  }
+
+  return (
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto max-w-2xl px-5 py-4 pb-24 sm:px-6 sm:py-10">
+        <BackNav />
+        <p className="label-caps mt-4 sm:mt-8">Nutrizione</p>
+        <h1 className="mt-4 text-3xl font-semibold">Log macro</h1>
+        <div className="mt-4">
+          <DateNav date={date} onChange={setDate} />
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Scrivi cosa hai mangiato in italiano normale. Ci penso io a stimare kcal e macro.
+        </p>
+
+        {/* Riepilogo */}
+        <section className="mt-8 border border-border">
+          <div className="border-b border-border p-4">
+            <p className="label-caps">Totale del giorno</p>
+          </div>
+          <div className="grid grid-cols-2 gap-px sm:grid-cols-4">
+            {bars.map((b) => {
+              const pct = b.target ? Math.min(100, (b.value / b.target) * 100) : 0;
+              return (
+                <div key={b.label} className="border-border p-4 not-last:border-r">
+                  <p className="label-caps">{b.label}</p>
+                  <p className="num mt-2 text-2xl">
+                    {r(b.value)}
+                    <span className="ml-1 text-xs text-muted-foreground">{b.unit}</span>
+                  </p>
+                  {b.target != null && (
+                    <>
+                      <p className="num mt-1 text-xs text-muted-foreground">
+                        / {b.target} {b.unit}
+                      </p>
+                      <div className="mt-3 h-1 w-full bg-muted">
+                        <div className="h-1 bg-primary" style={{ width: `${pct}%` }} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="border-t border-border p-4">
+            <p className="label-caps">Cosa manca</p>
+            <p className="mt-2 text-sm text-muted-foreground">{advice()}</p>
+          </div>
+        </section>
+
+        {/* Input */}
+        <section className="mt-8">
+          <label htmlFor="meal" className="label-caps">
+            Nuovo pasto
+          </label>
+          <Textarea
+            id="meal"
+            className="mt-3 min-h-28"
+            placeholder="200g petto di pollo, 150g riso, un cucchiaio di olio"
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setDraft(null);
+            }}
+          />
+          <Button
+            className="mt-3 w-full"
+            size="lg"
+            disabled={text.trim().length < 2 || estimateMutation.isPending}
+            onClick={() => estimateMutation.mutate()}
+          >
+            {estimateMutation.isPending ? "Stimo i macro…" : "Stima macro"}
+          </Button>
+
+          {draft && (
+            <div className="mt-4 border border-border p-4">
+              <p className="label-caps">Stima</p>
+              <div className="mt-3 grid grid-cols-4 gap-3">
+                {[
+                  ["Kcal", draft.kcal],
+                  ["Prot", draft.protein_g],
+                  ["Carbo", draft.carbs_g],
+                  ["Grassi", draft.fat_g],
+                ].map(([l, v]) => (
+                  <div key={l as string}>
+                    <p className="label-caps">{l as string}</p>
+                    <p className="num mt-1 text-lg">{r(v as number)}</p>
+                  </div>
+                ))}
+              </div>
+              {draft.items.length > 0 && (
+                <p className="mt-3 text-xs text-muted-foreground">{draft.items.join(" · ")}</p>
+              )}
+              <Button
+                className="mt-4 w-full"
+                disabled={saveMutation.isPending}
+                onClick={() => saveMutation.mutate(draft)}
+              >
+                {saveMutation.isPending ? "Salvo…" : "Aggiungi al totale"}
+              </Button>
+            </div>
+          )}
+        </section>
+
+        {/* Pasti */}
+        <section className="mt-10">
+          <p className="label-caps">Pasti del giorno</p>
+          {meals.length === 0 ? (
+            <p className="mt-3 text-sm text-muted-foreground">Nessun pasto registrato.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-border border border-border">
+              {meals.map((m) => (
+                <li key={m.id} className="flex items-start justify-between gap-4 p-4">
+                  <div className="min-w-0">
+                    <p className="text-sm">{m.description}</p>
+                    <p className="num mt-1 text-xs text-muted-foreground">
+                      {r(Number(m.kcal))} kcal · P {r(Number(m.protein_g))} · C{" "}
+                      {r(Number(m.carbs_g))} · G {r(Number(m.fat_g))}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteMutation.mutate(m.id)}
+                    aria-label="Elimina pasto"
+                  >
+                    Elimina
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
