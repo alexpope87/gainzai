@@ -96,8 +96,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "GAINZ — Your data. Your gainz." },
       { name: "twitter:description", content: "Your data. Your gainz. Check-in, allenamenti, macro e analisi AI serale per bodybuilder seri." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/11274f36-115c-44cc-8dad-36193a201887/id-preview-d4551b51--d82a6a6f-c52a-4e22-b7fb-c3769503a493.lovable.app-1785847091119.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/11274f36-115c-44cc-8dad-36193a201887/id-preview-d4551b51--d82a6a6f-c52a-4e22-b7fb-c3769503a493.lovable.app-1785847091119.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
