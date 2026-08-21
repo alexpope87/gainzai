@@ -27,11 +27,13 @@ Con pasti ricorrenti (colazione uguale ogni giorno, piatti abituali) ci si aspet
 
 ## Costo atteso dopo l'intervento
 
-| Voce | Prima | Dopo |
-|---|---|---|
-| Analisi giornaliere | ~45–60 $ | invariato |
-| Stime macro | ~25–35 $ | ~3–6 $ |
-| **Totale AI/mese** | **~70–95 $** | **~50–65 $** |
+
+| Voce                          | Prima    | Dopo             | &nbsp; | &nbsp;         |
+| ----------------------------- | -------- | ---------------- | ------ | -------------- |
+| - Analisi giornaliere         | ~        | invariato45–60 $ | &nbsp; | &nbsp;         |
+| Stime macro                   | ~25–35 $ | ~3–6 $           | &nbsp; | &nbsp;         |
+| **~50–65****Totale AI/mese** | &nbsp;   | &nbsp;           | &nbsp; | **~70–95 $ $** |
+
 
 Più Lovable Pro (25 $) e Supabase (0 $ su Free, 25 $ su Pro).
 
