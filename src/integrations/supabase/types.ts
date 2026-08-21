@@ -101,6 +101,48 @@ export type Database = {
         }
         Relationships: []
       }
+      macro_estimates_cache: {
+        Row: {
+          carbs_g: number
+          created_at: string
+          fat_g: number
+          hits: number
+          id: string
+          items: string[]
+          kcal: number
+          protein_g: number
+          text_hash: string
+          text_normalized: string
+          updated_at: string
+        }
+        Insert: {
+          carbs_g?: number
+          created_at?: string
+          fat_g?: number
+          hits?: number
+          id?: string
+          items?: string[]
+          kcal?: number
+          protein_g?: number
+          text_hash: string
+          text_normalized: string
+          updated_at?: string
+        }
+        Update: {
+          carbs_g?: number
+          created_at?: string
+          fat_g?: number
+          hits?: number
+          id?: string
+          items?: string[]
+          kcal?: number
+          protein_g?: number
+          text_hash?: string
+          text_normalized?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meal_plan_days: {
         Row: {
           carbs_g: number | null
@@ -496,7 +538,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      bump_macro_estimate_hit: {
+        Args: { _text_hash: string }
+        Returns: undefined
+      }
+      upsert_macro_estimate: {
+        Args: {
+          _carbs_g: number
+          _fat_g: number
+          _items: string[]
+          _kcal: number
+          _protein_g: number
+          _text_hash: string
+          _text_normalized: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
