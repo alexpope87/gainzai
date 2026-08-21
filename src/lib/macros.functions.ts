@@ -12,12 +12,13 @@ import {
 export const estimateMacros = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => MacroInput.parse(input))
-  .handler(async ({ data, context }): Promise<MacroEstimate> => {
+  .handler(async ({ data }): Promise<MacroEstimate> => {
     const normalized = normalizeMealText(data.text);
     const textHash = await hashMealText(normalized);
 
-    // 1. Cache lookup (nessuna chiamata AI se già stimato)
-    const { data: cached } = await context.supabase
+    // 1. Cache lookup (nessuna chiamata AI se già stimato) - solo lato server
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cached } = await supabaseAdmin
       .from("macro_estimates_cache")
       .select("kcal, protein_g, carbs_g, fat_g, items")
       .eq("text_hash", textHash)
@@ -33,7 +34,6 @@ export const estimateMacros = createServerFn({ method: "POST" })
       });
       if (hit.success) {
         try {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           await supabaseAdmin.rpc("bump_macro_estimate_hit", { _text_hash: textHash });
         } catch (e) {
           console.error("cache hit bump failed", e);
@@ -41,6 +41,7 @@ export const estimateMacros = createServerFn({ method: "POST" })
         return hit.data;
       }
     }
+
 
     // 2. Cache miss -> modello economico
     const key = process.env["LOVABLE_API_KEY"];
