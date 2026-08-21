@@ -87,8 +87,8 @@ export const estimateMacros = createServerFn({ method: "POST" })
 
     // 3. Salva in cache (best effort)
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin.rpc("upsert_macro_estimate", {
+
         _text_hash: textHash,
         _text_normalized: normalized,
         _kcal: result.data.kcal,
