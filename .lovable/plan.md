@@ -1,54 +1,45 @@
-# Migrazione GAINZ → nuovo progetto (Supabase GAINZ PROD)
+# Ottimizzazione costi AI: stima macro
 
-Il progetto originale resta intatto: lavoro solo su una copia in sola lettura del suo codice.
+Obiettivo: ridurre il costo mensile dell'AI Gateway (~70–95 $ stimati con 100 utenti) portandolo a ~30–45 $, senza peggiorare l'esperienza utente.
 
-## 1. Analisi del progetto originale
+Le stime macro sono il 75% delle chiamate (9.000/mese su 12.000) ma il task più semplice: si prestano sia a un modello più economico sia alla cache.
 
-**Stack**: identico a questo nuovo progetto (TanStack Start + React 19 + Tailwind v4 + shadcn/ui + Supabase). Nessun cambio di framework necessario.
+## 1. Modello più economico per le macro
 
-### File e cartelle da trasferire (116 file)
-- `src/routes/` — `index.tsx`, `auth.tsx`, `reset-password.tsx`, `__root.tsx`, e il gruppo protetto `_authenticated/` (route.tsx, dashboard, onboarding, checkin, workout, program, meal-plan, macros, analysis)
-- `src/components/` — componenti app (back-nav, brand-logo, dashboard-actions, dashboard-metrics, date-nav, program-list) + libreria `ui/` shadcn completa
-- `src/lib/` — logica server e utility: `analysis.functions.ts`, `macros.functions.ts`, `meal-plan.functions.ts`, `program.functions.ts`, `error-capture.ts`, `error-page.ts`, `lovable-error-reporting.ts`, `utils.ts`
-- `src/hooks/use-mobile.tsx`
-- `src/styles.css` (tema/design system), `src/router.tsx`, `src/start.ts`, `src/server.ts`
-- `public/favicon.ico`, `public/robots.txt`, `components.json`
+`estimateMacros` passa da `openai/gpt-5.6-sol` (Responses API con reasoning) a `google/gemini-3.6-flash` sulla chat completions API, la stessa già usata con successo per l'import del piano alimentare e delle schede.
 
-### Da NON trasferire
-- `src/integrations/supabase/*` → nel nuovo progetto sono già generati e puntano a GAINZ PROD (incluso `types.ts`)
-- `src/routeTree.gen.ts` → rigenerato automaticamente
-- `.env`, `.lovable/`, `supabase/config.toml` (project_id diverso), `bun.lock`
+- Stesso schema JSON di output (`kcal`, `protein_g`, `carbs_g`, `fat_g`, `items`) e stesso prompt di sistema: nessun cambiamento per il frontend.
+- Stessa gestione errori (429 / 402 / risposta non leggibile) e stessa validazione Zod.
+- Risparmio atteso su questa voce: circa −80%.
 
-### Dipendenze
-Tutte già presenti tranne una: **`xlsx`** (usata in `program.tsx` e `meal-plan.tsx` per importare schede/piani da Excel/CSV). Da installare.
+L'analisi giornaliera (`generateAnalysis`) resta su `openai/gpt-5.6-sol`: è il task di ragionamento vero e proprio e vale il costo.
 
-### Configurazioni da adattare al nuovo Supabase
-- `supabase/config.toml`: mantiene il project_id del nuovo progetto (`iqddzlckdkmwignlmfhy`) — non copio quello vecchio
-- Client Supabase e `types.ts`: si usano quelli già generati qui
-- `.env`: già popolato con URL/chiavi di GAINZ PROD
-- Schema DB: **le tabelle su GAINZ PROD esistono già e combaciano** (profiles, checkins, programs, program_days, program_exercises, workout_sessions, workout_sets, meals, meal_plans, meal_plan_days, analyses) con RLS e trigger. Nessuna migrazione da rieseguire; verifico solo eventuali scostamenti.
-- `__root.tsx`: sostituisco l'URL `og:image` che punta all'anteprima del progetto vecchio
+## 2. Cache delle stime già calcolate
 
-### Server / edge functions
-Nessuna Supabase Edge Function. Tutta la logica server è in TanStack server functions (`src/lib/*.functions.ts`) con `requireSupabaseAuth`. Nessun webhook, cron o route `api/public`.
+Nuova tabella `macro_estimates_cache` su Supabase, condivisa tra tutti gli utenti (le macro di "100g di petto di pollo" non dipendono da chi le chiede).
 
-### Secrets e variabili d'ambiente
-- Già presenti su GAINZ PROD: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `LOVABLE_API_KEY`, `LOVABLE_CRON_SECRET`
-- Il runtime server legge `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `LOVABLE_API_KEY` — tutti disponibili. Nessun secret nuovo da chiedere.
+- Chiave: hash della descrizione normalizzata (minuscolo, spazi e punteggiatura compattati).
+- Colonne: `text_hash` (unique), `text_normalized`, i quattro macro, `items`, `hits`, `created_at`.
+- Flusso in `estimateMacros`: cerca in cache → se trovata restituisce subito (0 chiamate AI, risposta istantanea) e incrementa `hits`; altrimenti chiama il modello e salva il risultato.
+- RLS: lettura consentita a tutti gli utenti autenticati; la scrittura avviene solo dal server tramite funzione security definer, così nessuno può avvelenare la cache con valori arbitrari.
 
-### Riferimenti a Lovable Cloud da valutare
-- **AI Gateway** (`https://ai.gateway.lovable.dev`) usato da analisi, macro, piano pasti e import scheda con `LOVABLE_API_KEY`. Non è legato a Lovable Cloud/Supabase: **lo mantengo invariato**, continua a funzionare.
-- `lovable-error-reporting.ts` / `error-capture.ts`: telemetria dell'editor, innocua. Mantenuti.
-- `og:image` con URL preview del vecchio progetto → rimosso/aggiornato.
+Con pasti ricorrenti (colazione uguale ogni giorno, piatti abituali) ci si aspetta un hit rate del 30–50% dopo le prime settimane.
 
-## 2. Piano di esecuzione
+## Costo atteso dopo l'intervento
 
-1. Installare `xlsx`.
-2. Copiare componenti, hooks, lib, styles.css, public assets e configurazione shadcn.
-3. Copiare le route (sovrascrivendo `index.tsx` placeholder e `__root.tsx`), lasciando intatta l'integrazione Supabase locale.
-4. Adattare `__root.tsx` (og:image) e verificare che tutti gli import puntino a `@/integrations/supabase/*` del nuovo progetto.
-5. Verificare che `src/start.ts` registri `attachSupabaseAuth` (già fatto) e rigenerare il route tree.
-6. Confrontare lo schema DB con quello atteso dal codice; applicare una migrazione solo se emergono differenze.
-7. Verifica finale: build + typecheck + controllo delle pagine principali nell'anteprima.
+| Voce | Prima | Dopo |
+|---|---|---|
+| Analisi giornaliere | ~45–60 $ | invariato |
+| Stime macro | ~25–35 $ | ~3–6 $ |
+| **Totale AI/mese** | **~70–95 $** | **~50–65 $** |
 
-Il progetto originale non viene toccato in nessun passaggio.
+Più Lovable Pro (25 $) e Supabase (0 $ su Free, 25 $ su Pro).
+
+## Dettagli tecnici
+
+- Migrazione SQL: `CREATE TABLE public.macro_estimates_cache`, `GRANT SELECT` a `authenticated` + `GRANT ALL` a `service_role`, RLS abilitata con policy di sola lettura, indice unique su `text_hash`.
+- Funzione `public.upsert_macro_estimate(...)` security definer per la scrittura dal server, oppure scrittura con client service role dentro l'handler.
+- Hash con `crypto.subtle.digest('SHA-256', ...)` (disponibile nel runtime Worker).
+- `src/lib/macros.functions.ts`: sostituzione della chiamata Responses API con una fetch a `https://ai.gateway.lovable.dev/v1/chat/completions`, modello `google/gemini-3.6-flash`, `response_format` json_schema; niente streaming necessario per questo modello.
+- Nessuna modifica ai componenti che chiamano `estimateMacros`: firma e forma del risultato restano identiche.
+- Verifica finale: chiamata reale di prova alla funzione (primo miss → salvataggio in cache, secondo hit → nessuna chiamata AI) e typecheck.
