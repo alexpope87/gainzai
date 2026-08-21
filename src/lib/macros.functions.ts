@@ -1,32 +1,52 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { z } from "zod";
-
-const Input = z.object({
-  text: z.string().trim().min(2).max(2000),
-});
-
-const SYSTEM = `Sei un nutrizionista sportivo. L'utente descrive in italiano cosa ha mangiato.
-Stima i macronutrienti totali del pasto descritto usando valori medi realistici degli alimenti italiani.
-Se le quantità non sono indicate, assumi porzioni standard.
-Rispondi in json con: kcal, protein_g, carbs_g, fat_g (numeri interi, totali del pasto) e items (breve elenco degli alimenti riconosciuti con la quantità stimata).`;
-
-const Out = z.object({
-  kcal: z.coerce.number().min(0).max(10000),
-  protein_g: z.coerce.number().min(0).max(1000),
-  carbs_g: z.coerce.number().min(0).max(2000),
-  fat_g: z.coerce.number().min(0).max(1000),
-  items: z.array(z.string()).default([]),
-});
+import {
+  MACRO_SYSTEM,
+  MacroInput,
+  MacroOut,
+  hashMealText,
+  normalizeMealText,
+  type MacroEstimate,
+} from "./macros-shared";
 
 export const estimateMacros = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }) => {
+  .inputValidator((input: unknown) => MacroInput.parse(input))
+  .handler(async ({ data, context }): Promise<MacroEstimate> => {
+    const normalized = normalizeMealText(data.text);
+    const textHash = await hashMealText(normalized);
+
+    // 1. Cache lookup (nessuna chiamata AI se già stimato)
+    const { data: cached } = await context.supabase
+      .from("macro_estimates_cache")
+      .select("kcal, protein_g, carbs_g, fat_g, items")
+      .eq("text_hash", textHash)
+      .maybeSingle();
+
+    if (cached) {
+      const hit = MacroOut.safeParse({
+        kcal: cached.kcal,
+        protein_g: cached.protein_g,
+        carbs_g: cached.carbs_g,
+        fat_g: cached.fat_g,
+        items: cached.items ?? [],
+      });
+      if (hit.success) {
+        try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          await supabaseAdmin.rpc("bump_macro_estimate_hit", { _text_hash: textHash });
+        } catch (e) {
+          console.error("cache hit bump failed", e);
+        }
+        return hit.data;
+      }
+    }
+
+    // 2. Cache miss -> modello economico
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("AI non configurata");
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,86 +54,51 @@ export const estimateMacros = createServerFn({ method: "POST" })
         "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5.6-sol",
-        stream: true,
-        instructions: SYSTEM,
-        input: [
-          {
-            role: "user",
-            content: [{ type: "input_text", text: `Pasto: ${data.text}` }],
-          },
+        model: "google/gemini-3.6-flash",
+        messages: [
+          { role: "system", content: MACRO_SYSTEM },
+          { role: "user", content: `Pasto: ${data.text}` },
         ],
-        reasoning: { effort: "low", summary: "auto" },
-        store: false,
-        text: {
-          format: {
-            type: "json_schema",
-            name: "macro_estimate",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                kcal: { type: "number" },
-                protein_g: { type: "number" },
-                carbs_g: { type: "number" },
-                fat_g: { type: "number" },
-                items: { type: "array", items: { type: "string" } },
-              },
-              required: ["kcal", "protein_g", "carbs_g", "fat_g", "items"],
-            },
-          },
-        },
+        response_format: { type: "json_object" },
       }),
     });
 
     if (res.status === 429) throw new Error("Troppe richieste, riprova tra poco");
     if (res.status === 402) throw new Error("Crediti AI esauriti");
-    if (!res.ok || !res.body) {
+    if (!res.ok) {
       console.error("AI gateway error", res.status, await res.text());
       throw new Error("Stima dei macro fallita");
     }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let text = "";
-
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const payload = line.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const evt = JSON.parse(payload) as {
-            type?: string;
-            delta?: string;
-            response?: { output_text?: string };
-          };
-          if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
-            text += evt.delta;
-          } else if (evt.type === "response.completed" && evt.response?.output_text) {
-            if (!text) text = evt.response.output_text;
-          }
-        } catch {
-          /* ignore partial */
-        }
-      }
-    }
+    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+    const raw = json.choices?.[0]?.message?.content ?? "";
+    const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
 
     let parsed: unknown;
     try {
-      parsed = JSON.parse(text.trim());
+      parsed = JSON.parse(cleaned);
     } catch {
       throw new Error("Risposta AI non leggibile");
     }
 
-    const result = Out.safeParse(parsed);
+    const result = MacroOut.safeParse(parsed);
     if (!result.success) throw new Error("Stima dei macro non valida");
+
+    // 3. Salva in cache (best effort)
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.rpc("upsert_macro_estimate", {
+        _text_hash: textHash,
+        _text_normalized: normalized,
+        _kcal: result.data.kcal,
+        _protein_g: result.data.protein_g,
+        _carbs_g: result.data.carbs_g,
+        _fat_g: result.data.fat_g,
+        _items: result.data.items,
+      });
+    } catch (e) {
+      console.error("cache write failed", e);
+    }
+
     return result.data;
   });
