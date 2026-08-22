@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { generateAnalysis } from "@/lib/analysis.functions";
 import { Button } from "@/components/ui/button";
-import { BackNav } from "@/components/back-nav";
 
 export const Route = createFileRoute("/_authenticated/analysis")({
   head: () => ({
@@ -84,7 +83,6 @@ function AnalysisPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 pb-24 pt-4">
-        <BackNav />
 
         <p className="label-caps mt-4">Analisi serale</p>
         <h1 className="mt-3 text-3xl font-semibold">Cosa fare domani</h1>

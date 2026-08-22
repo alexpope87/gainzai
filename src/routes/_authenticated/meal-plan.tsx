@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BackNav } from "@/components/back-nav";
 
 export const Route = createFileRoute("/_authenticated/meal-plan")({
   head: () => ({
@@ -242,7 +241,6 @@ function MealPlanPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-5 py-4 pb-10 sm:px-6 sm:py-16">
-        <BackNav />
         <p className="label-caps mt-4 sm:mt-8">Nutrizione</p>
         <h1 className="mt-3 text-3xl font-semibold">Piano alimentare</h1>
         <p className="mt-3 text-sm text-muted-foreground">

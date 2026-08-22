@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { estimateMacros } from "@/lib/macros.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { BackNav } from "@/components/back-nav";
 import { DateNav, todayISO } from "@/components/date-nav";
 
 export const Route = createFileRoute("/_authenticated/macros")({
@@ -150,7 +149,6 @@ function Macros() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-5 py-4 pb-24 sm:px-6 sm:py-10">
-        <BackNav />
         <p className="label-caps mt-4 sm:mt-8">Nutrizione</p>
         <h1 className="mt-4 text-3xl font-semibold">Log macro</h1>
         <div className="mt-4">
