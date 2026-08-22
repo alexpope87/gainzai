@@ -19,7 +19,9 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMacrosRouteImport } from './routes/_authenticated/macros'
 import { Route as AuthenticatedMealPlanRouteImport } from './routes/_authenticated/meal-plan'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedProgramRouteImport } from './routes/_authenticated/program'
+import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedWorkoutRouteImport } from './routes/_authenticated/workout'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,9 +73,19 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProgramRoute = AuthenticatedProgramRouteImport.update({
   id: '/program',
   path: '/program',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedWorkoutRoute = AuthenticatedWorkoutRouteImport.update({
@@ -92,7 +104,9 @@ export interface FileRoutesByFullPath {
   '/macros': typeof AuthenticatedMacrosRoute
   '/meal-plan': typeof AuthenticatedMealPlanRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/program': typeof AuthenticatedProgramRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/workout': typeof AuthenticatedWorkoutRoute
 }
 export interface FileRoutesByTo {
@@ -105,7 +119,9 @@ export interface FileRoutesByTo {
   '/macros': typeof AuthenticatedMacrosRoute
   '/meal-plan': typeof AuthenticatedMealPlanRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/program': typeof AuthenticatedProgramRoute
+  '/progress': typeof AuthenticatedProgressRoute
   '/workout': typeof AuthenticatedWorkoutRoute
 }
 export interface FileRoutesById {
@@ -120,7 +136,9 @@ export interface FileRoutesById {
   '/_authenticated/macros': typeof AuthenticatedMacrosRoute
   '/_authenticated/meal-plan': typeof AuthenticatedMealPlanRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/program': typeof AuthenticatedProgramRoute
+  '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/workout': typeof AuthenticatedWorkoutRoute
 }
 export interface FileRouteTypes {
@@ -135,7 +153,9 @@ export interface FileRouteTypes {
     | '/macros'
     | '/meal-plan'
     | '/onboarding'
+    | '/profile'
     | '/program'
+    | '/progress'
     | '/workout'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -148,7 +168,9 @@ export interface FileRouteTypes {
     | '/macros'
     | '/meal-plan'
     | '/onboarding'
+    | '/profile'
     | '/program'
+    | '/progress'
     | '/workout'
   id:
     | '__root__'
@@ -162,7 +184,9 @@ export interface FileRouteTypes {
     | '/_authenticated/macros'
     | '/_authenticated/meal-plan'
     | '/_authenticated/onboarding'
+    | '/_authenticated/profile'
     | '/_authenticated/program'
+    | '/_authenticated/progress'
     | '/_authenticated/workout'
   fileRoutesById: FileRoutesById
 }
@@ -245,11 +269,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/program': {
       id: '/_authenticated/program'
       path: '/program'
       fullPath: '/program'
       preLoaderRoute: typeof AuthenticatedProgramRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/progress': {
+      id: '/_authenticated/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/workout': {
@@ -269,7 +307,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMacrosRoute: typeof AuthenticatedMacrosRoute
   AuthenticatedMealPlanRoute: typeof AuthenticatedMealPlanRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgramRoute: typeof AuthenticatedProgramRoute
+  AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedWorkoutRoute: typeof AuthenticatedWorkoutRoute
 }
 
@@ -280,7 +320,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMacrosRoute: AuthenticatedMacrosRoute,
   AuthenticatedMealPlanRoute: AuthenticatedMealPlanRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgramRoute: AuthenticatedProgramRoute,
+  AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedWorkoutRoute: AuthenticatedWorkoutRoute,
 }
 

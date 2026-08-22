@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BackNav } from "@/components/back-nav";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -106,7 +105,6 @@ function Onboarding() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-xl px-5 py-4 pb-16 sm:px-6 sm:py-16">
-        <BackNav />
         <p className="label-caps mt-4 sm:mt-8">Passo 1 di 1</p>
         <h1 className="mt-4 text-3xl font-semibold">Impostiamo la base</h1>
         <p className="mt-3 text-sm text-muted-foreground">
