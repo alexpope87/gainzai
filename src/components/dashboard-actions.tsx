@@ -39,8 +39,7 @@ export function DashboardActions() {
 
   return (
     <section>
-      <p className="label-caps">Azioni di oggi</p>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {ACTIONS.map((a) => {
           const isDone = done?.[a.key] ?? false;
           return (
