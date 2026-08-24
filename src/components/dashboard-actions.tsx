@@ -39,7 +39,7 @@ export function DashboardActions() {
 
   return (
     <section>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3">
         {ACTIONS.map((a) => {
           const isDone = done?.[a.key] ?? false;
           return (
@@ -48,16 +48,25 @@ export function DashboardActions() {
               type="button"
               onClick={() => navigate({ to: a.to })}
               className={
-                "flex min-h-28 flex-col items-start justify-between border p-5 text-left transition-colors " +
+                "relative flex min-h-[5.5rem] flex-col items-start justify-between rounded-lg border p-4 text-left transition-colors " +
                 (isDone
-                  ? "border-[#00FF87] bg-[#00FF87] text-black hover:bg-[#00FF87]/90"
+                  ? "border-[#00FF87] bg-secondary text-foreground hover:bg-secondary/80"
                   : "border-border bg-secondary text-foreground hover:bg-secondary/80")
               }
             >
-              <span className="text-base font-semibold">{a.label}</span>
+              {isDone && (
+                <span
+                  className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
+                  style={{ color: "#00FF87" }}
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              )}
+              <span className="text-sm font-semibold">{a.label}</span>
               <span
                 className={
-                  "mt-3 text-xs " + (isDone ? "text-black/70" : "text-muted-foreground")
+                  "mt-2 text-xs " + (isDone ? "text-muted-foreground" : "text-muted-foreground")
                 }
               >
                 {isDone ? "Completato oggi" : a.hint}
