@@ -46,10 +46,19 @@ type Estimate = {
   items: string[];
 };
 
+const MEAL_TYPES = [
+  { value: "colazione", label: "Colazione" },
+  { value: "pranzo", label: "Pranzo" },
+  { value: "snack", label: "Snack" },
+  { value: "cena", label: "Cena" },
+] as const;
+
 function Macros() {
   const queryClient = useQueryClient();
   const estimate = useServerFn(estimateMacros);
   const [text, setText] = useState("");
+  const [mealType, setMealType] = useState<string>("colazione");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Estimate | null>(null);
   const [date, setDate] = useState(todayISO());
 
