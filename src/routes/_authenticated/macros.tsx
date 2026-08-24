@@ -222,8 +222,20 @@ function Macros() {
         {/* Input */}
         <section className="mt-8">
           <label htmlFor="meal" className="label-caps">
-            Nuovo pasto
+            {editingId ? "Modifica pasto" : "Nuovo pasto"}
           </label>
+          <Select value={mealType} onValueChange={setMealType}>
+            <SelectTrigger className="mt-3 w-full" aria-label="Tipo di pasto">
+              <SelectValue placeholder="Seleziona pasto" />
+            </SelectTrigger>
+            <SelectContent>
+              {MEAL_TYPES.map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Textarea
             id="meal"
             className="mt-3 min-h-28"
