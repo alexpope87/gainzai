@@ -7,6 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { estimateMacros } from "@/lib/macros.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DateNav, todayISO } from "@/components/date-nav";
 
 export const Route = createFileRoute("/_authenticated/macros")({
@@ -39,10 +46,19 @@ type Estimate = {
   items: string[];
 };
 
+const MEAL_TYPES = [
+  { value: "colazione", label: "Colazione" },
+  { value: "pranzo", label: "Pranzo" },
+  { value: "snack", label: "Snack" },
+  { value: "cena", label: "Cena" },
+] as const;
+
 function Macros() {
   const queryClient = useQueryClient();
   const estimate = useServerFn(estimateMacros);
   const [text, setText] = useState("");
+  const [mealType, setMealType] = useState<string>("colazione");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Estimate | null>(null);
   const [date, setDate] = useState(todayISO());
 
@@ -84,22 +100,32 @@ function Macros() {
     mutationFn: async (e: Estimate) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sessione scaduta");
-      const { error } = await supabase.from("meals").insert({
-        user_id: userData.user.id,
+      const payload = {
         date,
+        meal_type: mealType,
         description: text.trim(),
         kcal: r(e.kcal),
         protein_g: r(e.protein_g),
         carbs_g: r(e.carbs_g),
         fat_g: r(e.fat_g),
-      });
-      if (error) throw error;
+      };
+      if (editingId) {
+        const { error } = await supabase.from("meals").update(payload).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("meals")
+          .insert({ user_id: userData.user.id, ...payload });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
+      const wasEdit = Boolean(editingId);
       setText("");
       setDraft(null);
+      setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ["meals", date] });
-      toast.success("Pasto salvato");
+      toast.success(wasEdit ? "Pasto aggiornato" : "Pasto salvato");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Salvataggio fallito"),
   });
@@ -196,8 +222,20 @@ function Macros() {
         {/* Input */}
         <section className="mt-8">
           <label htmlFor="meal" className="label-caps">
-            Nuovo pasto
+            {editingId ? "Modifica pasto" : "Nuovo pasto"}
           </label>
+          <Select value={mealType} onValueChange={setMealType}>
+            <SelectTrigger className="mt-3 w-full" aria-label="Tipo di pasto">
+              <SelectValue placeholder="Seleziona pasto" />
+            </SelectTrigger>
+            <SelectContent>
+              {MEAL_TYPES.map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Textarea
             id="meal"
             className="mt-3 min-h-28"
@@ -214,8 +252,38 @@ function Macros() {
             disabled={text.trim().length < 2 || estimateMutation.isPending}
             onClick={() => estimateMutation.mutate()}
           >
-            {estimateMutation.isPending ? "Stimo i macro…" : "Stima macro"}
+            {estimateMutation.isPending
+              ? "Stimo i macro…"
+              : editingId
+                ? "Ricalcola macro"
+                : "Stima macro"}
           </Button>
+          {editingId && !draft && (
+            <>
+              <Button
+                className="mt-2 w-full"
+                variant="secondary"
+                disabled={text.trim().length < 2 || estimateMutation.isPending || saveMutation.isPending}
+                onClick={async () => {
+                  const d = await estimateMutation.mutateAsync();
+                  saveMutation.mutate(d);
+                }}
+              >
+                {saveMutation.isPending ? "Aggiorno…" : "Aggiorna"}
+              </Button>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                onClick={() => {
+                  setEditingId(null);
+                  setText("");
+                  setDraft(null);
+                }}
+              >
+                Annulla modifica
+              </Button>
+            </>
+          )}
 
           {draft && (
             <div className="mt-4 border border-border p-4">
@@ -241,8 +309,25 @@ function Macros() {
                 disabled={saveMutation.isPending}
                 onClick={() => saveMutation.mutate(draft)}
               >
-                {saveMutation.isPending ? "Salvo…" : "Aggiungi al totale"}
+                {saveMutation.isPending
+                  ? "Salvo…"
+                  : editingId
+                    ? "Aggiorna"
+                    : "Aggiungi al totale"}
               </Button>
+              {editingId && (
+                <Button
+                  variant="ghost"
+                  className="mt-2 w-full"
+                  onClick={() => {
+                    setEditingId(null);
+                    setText("");
+                    setDraft(null);
+                  }}
+                >
+                  Annulla modifica
+                </Button>
+              )}
             </div>
           )}
         </section>
@@ -253,27 +338,75 @@ function Macros() {
           {meals.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Nessun pasto registrato.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-border border border-border">
-              {meals.map((m) => (
-                <li key={m.id} className="flex items-start justify-between gap-4 p-4">
-                  <div className="min-w-0">
-                    <p className="text-sm">{m.description}</p>
-                    <p className="num mt-1 text-xs text-muted-foreground">
-                      {r(Number(m.kcal))} kcal · P {r(Number(m.protein_g))} · C{" "}
-                      {r(Number(m.carbs_g))} · G {r(Number(m.fat_g))}
-                    </p>
+            <div className="mt-3 space-y-4">
+              {MEAL_TYPES.map((t) => {
+                const rows = meals.filter((m) => (m.meal_type ?? "pranzo") === t.value);
+                const sum = rows.reduce(
+                  (acc, m) => ({
+                    kcal: acc.kcal + Number(m.kcal),
+                    protein_g: acc.protein_g + Number(m.protein_g),
+                    carbs_g: acc.carbs_g + Number(m.carbs_g),
+                    fat_g: acc.fat_g + Number(m.fat_g),
+                  }),
+                  { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+                );
+                return (
+                  <div key={t.value} className="border border-border">
+                    <div className="border-b border-border p-4">
+                      <p className="label-caps">{t.label}</p>
+                      <p className="num mt-1 text-xs text-muted-foreground">
+                        {r(sum.kcal)} kcal · P {r(sum.protein_g)} · C {r(sum.carbs_g)} · G{" "}
+                        {r(sum.fat_g)}
+                      </p>
+                    </div>
+                    {rows.length === 0 ? (
+                      <p className="p-4 text-sm text-muted-foreground">Nessun pasto registrato.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {rows.map((m) => (
+                          <li
+                            key={m.id}
+                            className="flex items-start justify-between gap-4 p-4"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm">{m.description}</p>
+                              <p className="num mt-1 text-xs text-muted-foreground">
+                                {r(Number(m.kcal))} kcal · P {r(Number(m.protein_g))} · C{" "}
+                                {r(Number(m.carbs_g))} · G {r(Number(m.fat_g))}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingId(m.id);
+                                  setText(m.description);
+                                  setMealType(m.meal_type ?? "pranzo");
+                                  setDraft(null);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                aria-label="Modifica pasto"
+                              >
+                                Modifica
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteMutation.mutate(m.id)}
+                                aria-label="Elimina pasto"
+                              >
+                                Elimina
+                              </Button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteMutation.mutate(m.id)}
-                    aria-label="Elimina pasto"
-                  >
-                    Elimina
-                  </Button>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           )}
         </section>
       </div>
