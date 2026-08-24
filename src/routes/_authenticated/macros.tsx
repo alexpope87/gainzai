@@ -7,6 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { estimateMacros } from "@/lib/macros.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DateNav, todayISO } from "@/components/date-nav";
 
 export const Route = createFileRoute("/_authenticated/macros")({
