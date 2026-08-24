@@ -252,8 +252,38 @@ function Macros() {
             disabled={text.trim().length < 2 || estimateMutation.isPending}
             onClick={() => estimateMutation.mutate()}
           >
-            {estimateMutation.isPending ? "Stimo i macro…" : "Stima macro"}
+            {estimateMutation.isPending
+              ? "Stimo i macro…"
+              : editingId
+                ? "Ricalcola macro"
+                : "Stima macro"}
           </Button>
+          {editingId && !draft && (
+            <>
+              <Button
+                className="mt-2 w-full"
+                variant="secondary"
+                disabled={text.trim().length < 2 || estimateMutation.isPending || saveMutation.isPending}
+                onClick={async () => {
+                  const d = await estimateMutation.mutateAsync();
+                  saveMutation.mutate(d);
+                }}
+              >
+                {saveMutation.isPending ? "Aggiorno…" : "Aggiorna"}
+              </Button>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                onClick={() => {
+                  setEditingId(null);
+                  setText("");
+                  setDraft(null);
+                }}
+              >
+                Annulla modifica
+              </Button>
+            </>
+          )}
 
           {draft && (
             <div className="mt-4 border border-border p-4">
