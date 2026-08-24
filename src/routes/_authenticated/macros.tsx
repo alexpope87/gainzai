@@ -100,22 +100,32 @@ function Macros() {
     mutationFn: async (e: Estimate) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sessione scaduta");
-      const { error } = await supabase.from("meals").insert({
-        user_id: userData.user.id,
+      const payload = {
         date,
+        meal_type: mealType,
         description: text.trim(),
         kcal: r(e.kcal),
         protein_g: r(e.protein_g),
         carbs_g: r(e.carbs_g),
         fat_g: r(e.fat_g),
-      });
-      if (error) throw error;
+      };
+      if (editingId) {
+        const { error } = await supabase.from("meals").update(payload).eq("id", editingId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("meals")
+          .insert({ user_id: userData.user.id, ...payload });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
+      const wasEdit = Boolean(editingId);
       setText("");
       setDraft(null);
+      setEditingId(null);
       queryClient.invalidateQueries({ queryKey: ["meals", date] });
-      toast.success("Pasto salvato");
+      toast.success(wasEdit ? "Pasto aggiornato" : "Pasto salvato");
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Salvataggio fallito"),
   });
