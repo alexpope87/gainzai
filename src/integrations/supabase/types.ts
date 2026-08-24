@@ -239,6 +239,7 @@ export type Database = {
           fat_g: number
           id: string
           kcal: number
+          meal_type: string
           protein_g: number
           updated_at: string
           user_id: string
@@ -251,6 +252,7 @@ export type Database = {
           fat_g?: number
           id?: string
           kcal?: number
+          meal_type?: string
           protein_g?: number
           updated_at?: string
           user_id: string
@@ -263,6 +265,7 @@ export type Database = {
           fat_g?: number
           id?: string
           kcal?: number
+          meal_type?: string
           protein_g?: number
           updated_at?: string
           user_id?: string
