@@ -279,8 +279,25 @@ function Macros() {
                 disabled={saveMutation.isPending}
                 onClick={() => saveMutation.mutate(draft)}
               >
-                {saveMutation.isPending ? "Salvo…" : "Aggiungi al totale"}
+                {saveMutation.isPending
+                  ? "Salvo…"
+                  : editingId
+                    ? "Aggiorna"
+                    : "Aggiungi al totale"}
               </Button>
+              {editingId && (
+                <Button
+                  variant="ghost"
+                  className="mt-2 w-full"
+                  onClick={() => {
+                    setEditingId(null);
+                    setText("");
+                    setDraft(null);
+                  }}
+                >
+                  Annulla modifica
+                </Button>
+              )}
             </div>
           )}
         </section>
@@ -291,27 +308,75 @@ function Macros() {
           {meals.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">Nessun pasto registrato.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-border border border-border">
-              {meals.map((m) => (
-                <li key={m.id} className="flex items-start justify-between gap-4 p-4">
-                  <div className="min-w-0">
-                    <p className="text-sm">{m.description}</p>
-                    <p className="num mt-1 text-xs text-muted-foreground">
-                      {r(Number(m.kcal))} kcal · P {r(Number(m.protein_g))} · C{" "}
-                      {r(Number(m.carbs_g))} · G {r(Number(m.fat_g))}
-                    </p>
+            <div className="mt-3 space-y-4">
+              {MEAL_TYPES.map((t) => {
+                const rows = meals.filter((m) => (m.meal_type ?? "pranzo") === t.value);
+                const sum = rows.reduce(
+                  (acc, m) => ({
+                    kcal: acc.kcal + Number(m.kcal),
+                    protein_g: acc.protein_g + Number(m.protein_g),
+                    carbs_g: acc.carbs_g + Number(m.carbs_g),
+                    fat_g: acc.fat_g + Number(m.fat_g),
+                  }),
+                  { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+                );
+                return (
+                  <div key={t.value} className="border border-border">
+                    <div className="border-b border-border p-4">
+                      <p className="label-caps">{t.label}</p>
+                      <p className="num mt-1 text-xs text-muted-foreground">
+                        {r(sum.kcal)} kcal · P {r(sum.protein_g)} · C {r(sum.carbs_g)} · G{" "}
+                        {r(sum.fat_g)}
+                      </p>
+                    </div>
+                    {rows.length === 0 ? (
+                      <p className="p-4 text-sm text-muted-foreground">Nessun pasto registrato.</p>
+                    ) : (
+                      <ul className="divide-y divide-border">
+                        {rows.map((m) => (
+                          <li
+                            key={m.id}
+                            className="flex items-start justify-between gap-4 p-4"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm">{m.description}</p>
+                              <p className="num mt-1 text-xs text-muted-foreground">
+                                {r(Number(m.kcal))} kcal · P {r(Number(m.protein_g))} · C{" "}
+                                {r(Number(m.carbs_g))} · G {r(Number(m.fat_g))}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingId(m.id);
+                                  setText(m.description);
+                                  setMealType(m.meal_type ?? "pranzo");
+                                  setDraft(null);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
+                                }}
+                                aria-label="Modifica pasto"
+                              >
+                                Modifica
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteMutation.mutate(m.id)}
+                                aria-label="Elimina pasto"
+                              >
+                                Elimina
+                              </Button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteMutation.mutate(m.id)}
-                    aria-label="Elimina pasto"
-                  >
-                    Elimina
-                  </Button>
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           )}
         </section>
       </div>
