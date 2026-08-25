@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DateNav, todayISO } from "@/components/date-nav";
+import { PageBack } from "@/components/page-back";
+
 
 export const Route = createFileRoute("/_authenticated/workout")({
   head: () => ({
@@ -335,7 +337,9 @@ function WorkoutPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-5 py-4 pb-10 sm:px-6 sm:py-16">
+        <PageBack to="/dashboard" />
         <p className="label-caps mt-4 sm:mt-8">Allenamento</p>
+
         <h1 className="mt-3 text-3xl font-semibold">Log allenamento</h1>
         <div className="mt-4">
           <DateNav date={date} onChange={changeDate} />

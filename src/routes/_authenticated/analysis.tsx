@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { generateAnalysis } from "@/lib/analysis.functions";
 import { Button } from "@/components/ui/button";
+import { PageBack } from "@/components/page-back";
+
 
 export const Route = createFileRoute("/_authenticated/analysis")({
   head: () => ({
