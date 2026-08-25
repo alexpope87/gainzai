@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProgramList } from "@/components/program-list";
 import { Link } from "@tanstack/react-router";
+import { PageBack } from "@/components/page-back";
+
 
 
 export const Route = createFileRoute("/_authenticated/program")({
@@ -230,7 +232,9 @@ function ProgramPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 py-4 pb-10 sm:px-6 sm:py-16">
+        <PageBack to="/dashboard" />
         <p className="label-caps mt-4 sm:mt-8">Scheda</p>
+
         <h1 className="mt-3 text-3xl font-semibold">La tua scheda</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Carica PDF, Excel o una foto. L'AI estrae i Day e gli esercizi — poi correggi quello che

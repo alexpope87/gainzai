@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { PageBack } from "@/components/page-back";
+
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -52,7 +54,9 @@ function ProfilePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 pt-10 pb-10">
+      <PageBack to="/dashboard" />
       <p className="label-caps">Profilo</p>
+
       <h1 className="mt-4 text-3xl font-semibold">{profile?.name ?? "Il tuo profilo"}</h1>
 
       <section className="mt-8 border border-border">
