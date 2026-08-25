@@ -85,8 +85,10 @@ function AnalysisPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-5 pb-24 pt-4">
+        <PageBack to="/dashboard" />
 
         <p className="label-caps mt-4">Analisi serale</p>
+
         <h1 className="mt-3 text-3xl font-semibold">Cosa fare domani</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           L'AI legge check-in, allenamenti e macro degli ultimi 7 giorni e risponde in 5 sezioni.
