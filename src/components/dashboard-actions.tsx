@@ -23,15 +23,33 @@ export function DashboardActions() {
     queryFn: async () => {
       const today = todayIso();
       const [checkin, workout, meals, analysis] = await Promise.all([
-        supabase.from("checkins").select("id").eq("date", today).limit(1),
+        supabase
+          .from("checkins")
+          .select("weight_kg, sleep_hours, energy")
+          .eq("date", today)
+          .limit(1),
         supabase.from("workout_sessions").select("id").eq("date", today).limit(1),
-        supabase.from("meals").select("id").eq("date", today).limit(1),
+        supabase.from("meals").select("id, meal_type").eq("date", today),
         supabase.from("analyses").select("id").eq("date", today).limit(1),
       ]);
+
+      const checkinRow = checkin.data?.[0];
+      const hasCompleteCheckin =
+        checkinRow != null &&
+        checkinRow.weight_kg != null &&
+        checkinRow.sleep_hours != null &&
+        checkinRow.energy != null;
+
+      const mealTypes = new Set((meals.data ?? []).map((m) => m.meal_type));
+      const hasCompleteMacros =
+        mealTypes.has("colazione") &&
+        mealTypes.has("pranzo") &&
+        mealTypes.has("cena");
+
       return {
-        checkin: (checkin.data?.length ?? 0) > 0,
+        checkin: hasCompleteCheckin,
         workout: (workout.data?.length ?? 0) > 0,
-        macros: (meals.data?.length ?? 0) > 0,
+        macros: hasCompleteMacros,
         analysis: (analysis.data?.length ?? 0) > 0,
       } as Record<ActionKey, boolean>;
     },
