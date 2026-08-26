@@ -191,6 +191,7 @@ function WorkoutPage() {
         .select("exercise_id, reps, weight_kg, rir, set_index")
         .eq("session_id", existing.id)
         .order("set_index");
+      const done: Record<string, boolean> = {};
       for (const s of oldSets ?? []) {
         if (!s.exercise_id || !base[s.exercise_id]) continue;
         const idx = s.set_index - 1;
@@ -201,10 +202,13 @@ function WorkoutPage() {
         };
         if (idx < base[s.exercise_id]!.length) base[s.exercise_id]![idx] = entry;
         else base[s.exercise_id]!.push(entry);
+        done[s.exercise_id] = true;
       }
+      setDoneEx(done);
     } else {
       setScores({ pump: 3, effort: 3, motivation: 3 });
       setNotes("");
+      setDoneEx({});
     }
     setEntries(base);
 
