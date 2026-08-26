@@ -566,26 +566,41 @@ function WorkoutPage() {
                       </div>
                     ))}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() =>
-                      setEntries((prev) => ({
-                        ...prev,
-                        [ex.id]: [
-                          ...(prev[ex.id] ?? []),
-                          {
-                            reps: "",
-                            weight: "",
-                            rir: ex.target_rir != null ? String(ex.target_rir) : "",
-                          },
-                        ],
-                      }))
-                    }
-                  >
-                    + Serie
-                  </Button>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setEntries((prev) => ({
+                          ...prev,
+                          [ex.id]: [
+                            ...(prev[ex.id] ?? []),
+                            {
+                              reps: "",
+                              weight: "",
+                              rir: ex.target_rir != null ? String(ex.target_rir) : "",
+                            },
+                          ],
+                        }))
+                      }
+                    >
+                      + Serie
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => void saveExercise(ex)}
+                      disabled={savingEx === ex.id}
+                      aria-label={`Salva ${ex.name}`}
+                      className={`inline-flex h-11 min-w-[6rem] items-center justify-center gap-2 border px-4 text-sm font-medium transition-colors disabled:opacity-60 ${
+                        doneEx[ex.id]
+                          ? "border-[#00FF87] text-[#00FF87]"
+                          : "border-border text-foreground hover:border-foreground/40"
+                      }`}
+                    >
+                      {doneEx[ex.id] && <Check className="h-4 w-4" />}
+                      {savingEx === ex.id ? "Salvo…" : "Done"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
