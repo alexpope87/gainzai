@@ -166,15 +166,44 @@ export const generateAnalysis = createServerFn({ method: "POST" })
       throw new Error("Generazione analisi fallita");
     }
 
+    type OutputItem = {
+      type?: string;
+      content?: Array<{ type?: string; text?: string }>;
+    };
+    type ResponsePayload = {
+      output_text?: string | string[];
+      output?: OutputItem[];
+      status?: string;
+      incomplete_details?: unknown;
+      error?: unknown;
+    };
+
+    function textFromResponse(r: ResponsePayload | undefined): string {
+      if (!r) return "";
+      if (typeof r.output_text === "string" && r.output_text) return r.output_text;
+      if (Array.isArray(r.output_text)) return r.output_text.join("");
+      const parts: string[] = [];
+      for (const item of r.output ?? []) {
+        if (item.type === "reasoning") continue;
+        for (const c of item.content ?? []) {
+          if (typeof c.text === "string" && c.type !== "reasoning_text") parts.push(c.text);
+        }
+      }
+      return parts.join("");
+    }
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
     let text = "";
+    let lastResponse: ResponsePayload | undefined;
+    const eventTypes = new Set<string>();
+
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
+      const lines = buffer.split(/\r?\n/);
       buffer = lines.pop() ?? "";
       for (const line of lines) {
         if (!line.startsWith("data:")) continue;
@@ -184,12 +213,16 @@ export const generateAnalysis = createServerFn({ method: "POST" })
           const evt = JSON.parse(raw) as {
             type?: string;
             delta?: string;
-            response?: { output_text?: string };
+            text?: string;
+            response?: ResponsePayload;
           };
+          if (evt.type) eventTypes.add(evt.type);
           if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
             text += evt.delta;
-          } else if (evt.type === "response.completed" && evt.response?.output_text && !text) {
-            text = evt.response.output_text;
+          } else if (evt.type === "response.output_text.done" && typeof evt.text === "string" && !text) {
+            text = evt.text;
+          } else if (evt.response) {
+            lastResponse = evt.response;
           }
         } catch {
           /* ignore partial */
@@ -197,14 +230,45 @@ export const generateAnalysis = createServerFn({ method: "POST" })
       }
     }
 
+    if (!text.trim()) text = textFromResponse(lastResponse);
+
+    // Strip eventuali code fence ```json ... ```
+    let cleaned = text.trim();
+    const fence = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    if (fence?.[1]) cleaned = fence[1].trim();
+    if (!cleaned.startsWith("{")) {
+      const first = cleaned.indexOf("{");
+      const last = cleaned.lastIndexOf("}");
+      if (first !== -1 && last > first) cleaned = cleaned.slice(first, last + 1);
+    }
+
     let parsed: unknown;
     try {
-      parsed = JSON.parse(text.trim());
-    } catch {
-      throw new Error("Risposta AI non leggibile");
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("[analysis] parsing fallito", {
+        errore: e instanceof Error ? e.message : String(e),
+        eventi: [...eventTypes],
+        status: lastResponse?.status,
+        incomplete: lastResponse?.incomplete_details,
+        aiError: lastResponse?.error,
+        lunghezza: cleaned.length,
+        anteprima: cleaned.slice(0, 1500),
+      });
+      throw new Error(
+        cleaned
+          ? "Risposta AI non leggibile"
+          : "L'AI non ha restituito testo (nessun output). Riprova.",
+      );
     }
     const result = Out.safeParse(parsed);
-    if (!result.success) throw new Error("Analisi non valida");
+    if (!result.success) {
+      console.error("[analysis] schema non valido", {
+        issues: result.error.issues,
+        anteprima: cleaned.slice(0, 1500),
+      });
+      throw new Error("Analisi non valida");
+    }
 
     const counts = `${payload.checkin.length} check-in · ${payload.allenamenti.length} allenamenti · ${payload.pasti.length} pasti`;
 
