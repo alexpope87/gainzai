@@ -259,6 +259,71 @@ function WorkoutPage() {
     }));
   }
 
+  async function ensureSession(userId: string): Promise<string> {
+    if (sessionId) return sessionId;
+    if (!day) throw new Error("Nessun Day selezionato");
+    const { data: session, error } = await supabase
+      .from("workout_sessions")
+      .upsert(
+        {
+          user_id: userId,
+          day_id: day.id,
+          day_name: day.name,
+          date,
+        },
+        { onConflict: "user_id,day_id,date" },
+      )
+      .select("id")
+      .single();
+    if (error) throw error;
+    setSessionId(session.id);
+    return session.id;
+  }
+
+  async function saveExercise(ex: Exercise) {
+    const rows = (entries[ex.id] ?? [])
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => s.reps !== "" || s.weight !== "")
+      .map(({ s, i }) => ({
+        exercise_id: ex.id,
+        exercise_name: ex.name,
+        set_index: i + 1,
+        reps: s.reps === "" ? null : Number(s.reps),
+        weight_kg: s.weight === "" ? null : Number(s.weight),
+        rir: s.rir === "" ? null : Number(s.rir),
+      }));
+    if (rows.length === 0) {
+      toast.error("Inserisci almeno una serie per questo esercizio");
+      return;
+    }
+    setSavingEx(ex.id);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) throw new Error("Sessione scaduta");
+      const sid = await ensureSession(user.id);
+
+      const { error: dErr } = await supabase
+        .from("workout_sets")
+        .delete()
+        .eq("session_id", sid)
+        .eq("exercise_id", ex.id);
+      if (dErr) throw dErr;
+
+      const { error: iErr } = await supabase
+        .from("workout_sets")
+        .insert(rows.map((r) => ({ ...r, user_id: user.id, session_id: sid })));
+      if (iErr) throw iErr;
+
+      setDoneEx((prev) => ({ ...prev, [ex.id]: true }));
+      toast.success(`${ex.name} salvato`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Salvataggio fallito");
+    } finally {
+      setSavingEx(null);
+    }
+  }
+
   async function save() {
     if (!day) return;
     const rows = day.exercises.flatMap((ex) =>
