@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,8 @@ function WorkoutPage() {
   });
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [doneEx, setDoneEx] = useState<Record<string, boolean>>({});
+  const [savingEx, setSavingEx] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -189,6 +192,7 @@ function WorkoutPage() {
         .select("exercise_id, reps, weight_kg, rir, set_index")
         .eq("session_id", existing.id)
         .order("set_index");
+      const done: Record<string, boolean> = {};
       for (const s of oldSets ?? []) {
         if (!s.exercise_id || !base[s.exercise_id]) continue;
         const idx = s.set_index - 1;
@@ -199,10 +203,13 @@ function WorkoutPage() {
         };
         if (idx < base[s.exercise_id]!.length) base[s.exercise_id]![idx] = entry;
         else base[s.exercise_id]!.push(entry);
+        done[s.exercise_id] = true;
       }
+      setDoneEx(done);
     } else {
       setScores({ pump: 3, effort: 3, motivation: 3 });
       setNotes("");
+      setDoneEx({});
     }
     setEntries(base);
 
@@ -251,6 +258,71 @@ function WorkoutPage() {
       ...prev,
       [exId]: (prev[exId] ?? []).map((s, j) => (j === i ? { ...s, ...patch } : s)),
     }));
+  }
+
+  async function ensureSession(userId: string): Promise<string> {
+    if (sessionId) return sessionId;
+    if (!day) throw new Error("Nessun Day selezionato");
+    const { data: session, error } = await supabase
+      .from("workout_sessions")
+      .upsert(
+        {
+          user_id: userId,
+          day_id: day.id,
+          day_name: day.name,
+          date,
+        },
+        { onConflict: "user_id,day_id,date" },
+      )
+      .select("id")
+      .single();
+    if (error) throw error;
+    setSessionId(session.id);
+    return session.id;
+  }
+
+  async function saveExercise(ex: Exercise) {
+    const rows = (entries[ex.id] ?? [])
+      .map((s, i) => ({ s, i }))
+      .filter(({ s }) => s.reps !== "" || s.weight !== "")
+      .map(({ s, i }) => ({
+        exercise_id: ex.id,
+        exercise_name: ex.name,
+        set_index: i + 1,
+        reps: s.reps === "" ? null : Number(s.reps),
+        weight_kg: s.weight === "" ? null : Number(s.weight),
+        rir: s.rir === "" ? null : Number(s.rir),
+      }));
+    if (rows.length === 0) {
+      toast.error("Inserisci almeno una serie per questo esercizio");
+      return;
+    }
+    setSavingEx(ex.id);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (!user) throw new Error("Sessione scaduta");
+      const sid = await ensureSession(user.id);
+
+      const { error: dErr } = await supabase
+        .from("workout_sets")
+        .delete()
+        .eq("session_id", sid)
+        .eq("exercise_id", ex.id);
+      if (dErr) throw dErr;
+
+      const { error: iErr } = await supabase
+        .from("workout_sets")
+        .insert(rows.map((r) => ({ ...r, user_id: user.id, session_id: sid })));
+      if (iErr) throw iErr;
+
+      setDoneEx((prev) => ({ ...prev, [ex.id]: true }));
+      toast.success(`${ex.name} salvato`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Salvataggio fallito");
+    } finally {
+      setSavingEx(null);
+    }
   }
 
   async function save() {
@@ -495,26 +567,41 @@ function WorkoutPage() {
                       </div>
                     ))}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-3"
-                    onClick={() =>
-                      setEntries((prev) => ({
-                        ...prev,
-                        [ex.id]: [
-                          ...(prev[ex.id] ?? []),
-                          {
-                            reps: "",
-                            weight: "",
-                            rir: ex.target_rir != null ? String(ex.target_rir) : "",
-                          },
-                        ],
-                      }))
-                    }
-                  >
-                    + Serie
-                  </Button>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setEntries((prev) => ({
+                          ...prev,
+                          [ex.id]: [
+                            ...(prev[ex.id] ?? []),
+                            {
+                              reps: "",
+                              weight: "",
+                              rir: ex.target_rir != null ? String(ex.target_rir) : "",
+                            },
+                          ],
+                        }))
+                      }
+                    >
+                      + Serie
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => void saveExercise(ex)}
+                      disabled={savingEx === ex.id}
+                      aria-label={`Salva ${ex.name}`}
+                      className={`inline-flex h-11 min-w-[6rem] items-center justify-center gap-2 border px-4 text-sm font-medium transition-colors disabled:opacity-60 ${
+                        doneEx[ex.id]
+                          ? "border-[#00FF87] text-[#00FF87]"
+                          : "border-border text-foreground hover:border-foreground/40"
+                      }`}
+                    >
+                      {doneEx[ex.id] && <Check className="h-4 w-4" />}
+                      {savingEx === ex.id ? "Salvo…" : "Done"}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
