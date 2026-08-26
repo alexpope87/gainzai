@@ -99,6 +99,8 @@ function WorkoutPage() {
   });
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [doneEx, setDoneEx] = useState<Record<string, boolean>>({});
+  const [savingEx, setSavingEx] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
