@@ -285,6 +285,14 @@ export function DashboardMetrics({
 
   if (isLoading || !computed) {
     if (only === "charts") return null;
+    if (only === "weight" || only === "volume" || only === "strength") {
+      return (
+        <section className="border border-border p-5">
+          <p className="label-caps">—</p>
+          <div className="mt-6 h-64 animate-pulse rounded bg-muted" />
+        </section>
+      );
+    }
     return (
       <div className="grid gap-px border border-border sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
