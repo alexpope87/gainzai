@@ -517,20 +517,21 @@ function WorkoutPage() {
                   )}
                 </div>
 
-                <div className="p-4">
-                  <div className="label-caps mb-2 grid grid-cols-[2rem_1fr_1fr_1fr] gap-2">
+                <div className="p-3">
+                  <div className="label-caps mb-2 grid grid-cols-[1.75rem_1fr_1fr_1fr] gap-2">
                     <span>#</span>
-                    <span>Reps</span>
-                    <span>Kg</span>
-                    <span>RIR</span>
+                    <span className="text-center">Reps</span>
+                    <span className="text-center">Kg</span>
+                    <span className="text-center">RIR</span>
                   </div>
                   <div className="space-y-2">
                     {(entries[ex.id] ?? []).map((s, i) => (
-                      <div key={i} className="grid grid-cols-[2rem_1fr_1fr_1fr] items-center gap-2">
+                      <div key={i} className="grid grid-cols-[1.75rem_1fr_1fr_1fr] items-center gap-2">
                         <span className="num text-sm text-muted-foreground">{i + 1}</span>
                         <Input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
+                          autoComplete="off"
                           aria-label={`${ex.name} serie ${i + 1} reps`}
                           placeholder={
                             suggestions[ex.id]?.reps != null
@@ -539,12 +540,12 @@ function WorkoutPage() {
                           }
                           value={s.reps}
                           onChange={(e) => updateSet(ex.id, i, { reps: e.target.value })}
-                          className="num h-12"
+                          className="num h-14 min-w-0 px-2 text-center text-base"
                         />
                         <Input
-                          type="number"
+                          type="text"
                           inputMode="decimal"
-                          step="0.5"
+                          autoComplete="off"
                           aria-label={`${ex.name} serie ${i + 1} kg`}
                           placeholder={
                             suggestions[ex.id]?.weight != null
@@ -553,55 +554,61 @@ function WorkoutPage() {
                           }
                           value={s.weight}
                           onChange={(e) => updateSet(ex.id, i, { weight: e.target.value })}
-                          className="num h-12"
+                          className="num h-14 min-w-0 px-2 text-center text-base"
                         />
                         <Input
-                          type="number"
+                          type="text"
                           inputMode="numeric"
+                          autoComplete="off"
                           aria-label={`${ex.name} serie ${i + 1} RIR`}
                           placeholder="RIR"
                           value={s.rir}
                           onChange={(e) => updateSet(ex.id, i, { rir: e.target.value })}
-                          className="num h-12"
+                          className="num h-14 min-w-0 px-2 text-center text-base"
                         />
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setEntries((prev) => ({
+                  <button
+                    type="button"
+                    aria-label={`Aggiungi serie a ${ex.name}`}
+                    onClick={() =>
+                      setEntries((prev) => {
+                        const list = prev[ex.id] ?? [];
+                        const last = list[list.length - 1];
+                        return {
                           ...prev,
                           [ex.id]: [
-                            ...(prev[ex.id] ?? []),
-                            {
-                              reps: "",
-                              weight: "",
-                              rir: ex.target_rir != null ? String(ex.target_rir) : "",
-                            },
+                            ...list,
+                            last
+                              ? { ...last }
+                              : {
+                                  reps: "",
+                                  weight: "",
+                                  rir: ex.target_rir != null ? String(ex.target_rir) : "",
+                                },
                           ],
-                        }))
-                      }
-                    >
-                      + Serie
-                    </Button>
-                    <button
-                      type="button"
-                      onClick={() => void saveExercise(ex)}
-                      disabled={savingEx === ex.id}
-                      aria-label={`Salva ${ex.name}`}
-                      className={`inline-flex h-11 min-w-[6rem] items-center justify-center gap-2 border px-4 text-sm font-medium transition-colors disabled:opacity-60 ${
-                        doneEx[ex.id]
-                          ? "border-[#00FF87] text-[#00FF87]"
-                          : "border-border text-foreground hover:border-foreground/40"
-                      }`}
-                    >
-                      {doneEx[ex.id] && <Check className="h-4 w-4" />}
-                      {savingEx === ex.id ? "Salvo…" : "Done"}
-                    </button>
-                  </div>
+                        };
+                      })
+                    }
+                    className="num mt-3 flex h-14 w-full items-center justify-center border border-dashed border-border text-xl font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground active:bg-secondary"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void saveExercise(ex)}
+                    disabled={savingEx === ex.id}
+                    aria-label={`Salva ${ex.name}`}
+                    className={`mt-3 inline-flex h-12 w-full items-center justify-center gap-2 border text-sm font-medium transition-colors disabled:opacity-60 ${
+                      doneEx[ex.id]
+                        ? "border-[#00FF87] text-[#00FF87]"
+                        : "border-border text-foreground hover:border-foreground/40"
+                    }`}
+                  >
+                    {doneEx[ex.id] && <Check className="h-4 w-4" />}
+                    {savingEx === ex.id ? "Salvo…" : "Done"}
+                  </button>
                 </div>
               </div>
             ))}
