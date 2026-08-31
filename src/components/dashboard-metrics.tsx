@@ -433,46 +433,48 @@ export function DashboardMetrics({
       )}
 
       {/* Strength trend */}
-      <section className={`border border-border p-5 ${only && only !== "strength" && only !== "charts" ? "hidden" : ""}`}>
-        <p className="label-caps">Trend forza per esercizio</p>
-        {computed.strength.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Logga qualche allenamento per vedere il trend di forza.
-          </p>
-        ) : (
-          <div className="mt-4 divide-y divide-border">
-            {computed.strength.map((ex) => (
-              <div key={ex.name} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm">{ex.name}</p>
-                  <p className="num mt-1 text-xs text-muted-foreground">
-                    {ex.entries.map((e) => fmt(e.topWeight)).join(" · ")} kg
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    carico massimo per sessione (ultime {ex.entries.length})
-                  </p>
+      {(only === undefined || only === "charts" || only === "strength") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Trend forza per esercizio</p>
+          {computed.strength.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Logga qualche allenamento per vedere il trend di forza.
+            </p>
+          ) : (
+            <div className="mt-4 divide-y divide-border">
+              {computed.strength.map((ex) => (
+                <div key={ex.name} className="flex items-center justify-between gap-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm">{ex.name}</p>
+                    <p className="num mt-1 text-xs text-muted-foreground">
+                      {ex.entries.map((e) => fmt(e.topWeight)).join(" · ")} kg
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      carico massimo per sessione (ultime {ex.entries.length})
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="num text-xs text-muted-foreground">
+                      top {fmt(ex.last.topWeight)} kg
+                    </span>
+                    <span
+                      className={
+                        ex.trend === "up"
+                          ? "text-emerald-500"
+                          : ex.trend === "down"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {ex.trend === "up" ? "↑" : ex.trend === "down" ? "↓" : "→"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="num text-xs text-muted-foreground">
-                    top {fmt(ex.last.topWeight)} kg
-                  </span>
-                  <span
-                    className={
-                      ex.trend === "up"
-                        ? "text-emerald-500"
-                        : ex.trend === "down"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                    }
-                  >
-                    {ex.trend === "up" ? "↑" : ex.trend === "down" ? "↓" : "→"}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
