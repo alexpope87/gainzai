@@ -369,7 +369,7 @@ export function DashboardMetrics({
       </div>
 
       {/* Weight chart */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
+      <section className={`border border-border p-5 ${only && only !== "weight" && only !== "charts" ? "hidden" : ""}`}>
         <p className="label-caps">Andamento peso — 30 giorni</p>
         {computed.weightChart.length < 2 ? (
           <p className="mt-4 text-sm text-muted-foreground">
