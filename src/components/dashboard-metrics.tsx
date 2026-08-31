@@ -406,29 +406,31 @@ export function DashboardMetrics({
       )}
 
       {/* Volume chart */}
-      <section className={`border border-border p-5 ${only && only !== "volume" && only !== "charts" ? "hidden" : ""}`}>
-        <p className="label-caps">Volume allenamento — serie per gruppo</p>
-        {computed.activeGroups.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Nessuna serie registrata nelle ultime 6 settimane.
-          </p>
-        ) : (
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={computed.volumeChart}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="week" {...chartAxis} tickLine={false} />
-                <YAxis {...chartAxis} tickLine={false} width={30} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: "color-mix(in oklch, var(--muted) 40%, transparent)" }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                {computed.activeGroups.map((g) => (
-                  <Bar key={g} dataKey={g} stackId="v" fill={GROUP_COLORS[g]} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </section>
+      {(only === undefined || only === "charts" || only === "volume") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Volume allenamento — serie per gruppo</p>
+          {computed.activeGroups.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Nessuna serie registrata nelle ultime 6 settimane.
+            </p>
+          ) : (
+            <div className="mt-6 h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={computed.volumeChart}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="week" {...chartAxis} tickLine={false} />
+                  <YAxis {...chartAxis} tickLine={false} width={30} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "color-mix(in oklch, var(--muted) 40%, transparent)" }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {computed.activeGroups.map((g) => (
+                    <Bar key={g} dataKey={g} stackId="v" fill={GROUP_COLORS[g]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Strength trend */}
       <section className={`border border-border p-5 ${only && only !== "strength" && only !== "charts" ? "hidden" : ""}`}>
