@@ -89,7 +89,11 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-export function DashboardMetrics({ only }: { only?: "metrics" | "charts" }) {
+export function DashboardMetrics({
+  only,
+}: {
+  only?: "metrics" | "charts" | "weight" | "volume" | "strength";
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-metrics"],
     queryFn: async () => {
