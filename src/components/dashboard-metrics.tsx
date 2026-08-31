@@ -429,7 +429,7 @@ export function DashboardMetrics({
       </section>
 
       {/* Strength trend */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
+      <section className={`border border-border p-5 ${only && only !== "strength" && only !== "charts" ? "hidden" : ""}`}>
         <p className="label-caps">Trend forza per esercizio</p>
         {computed.strength.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
