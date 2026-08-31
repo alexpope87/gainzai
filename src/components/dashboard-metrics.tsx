@@ -322,7 +322,7 @@ export function DashboardMetrics({
   return (
     <div className="space-y-10">
       {/* Quick metrics */}
-      <div className={`grid gap-px border border-border sm:grid-cols-3 ${only === "charts" ? "hidden" : ""}`}>
+      <div className={`grid gap-px border border-border sm:grid-cols-3 ${only && only !== "metrics" ? "hidden" : ""}`}>
         <div className="border-border p-5 not-last:border-r">
           <p className="label-caps">Peso oggi</p>
           <p className="num mt-3 text-2xl">
