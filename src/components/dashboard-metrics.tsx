@@ -89,7 +89,11 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-export function DashboardMetrics({ only }: { only?: "metrics" | "charts" }) {
+export function DashboardMetrics({
+  only,
+}: {
+  only?: "metrics" | "charts" | "weight" | "volume" | "strength";
+}) {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-metrics"],
     queryFn: async () => {
@@ -281,6 +285,14 @@ export function DashboardMetrics({ only }: { only?: "metrics" | "charts" }) {
 
   if (isLoading || !computed) {
     if (only === "charts") return null;
+    if (only === "weight" || only === "volume" || only === "strength") {
+      return (
+        <section className="border border-border p-5">
+          <p className="label-caps">—</p>
+          <div className="mt-6 h-64 animate-pulse rounded bg-muted" />
+        </section>
+      );
+    }
     return (
       <div className="grid gap-px border border-border sm:grid-cols-3">
         {[0, 1, 2].map((i) => (
@@ -310,7 +322,7 @@ export function DashboardMetrics({ only }: { only?: "metrics" | "charts" }) {
   return (
     <div className="space-y-10">
       {/* Quick metrics */}
-      <div className={`grid gap-px border border-border sm:grid-cols-3 ${only === "charts" ? "hidden" : ""}`}>
+      <div className={`grid gap-px border border-border sm:grid-cols-3 ${only && only !== "metrics" ? "hidden" : ""}`}>
         <div className="border-border p-5 not-last:border-r">
           <p className="label-caps">Peso oggi</p>
           <p className="num mt-3 text-2xl">
@@ -357,106 +369,112 @@ export function DashboardMetrics({ only }: { only?: "metrics" | "charts" }) {
       </div>
 
       {/* Weight chart */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
-        <p className="label-caps">Andamento peso — 30 giorni</p>
-        {computed.weightChart.length < 2 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Servono almeno due check-in con il peso per disegnare il trend.
-          </p>
-        ) : (
-          <div className="mt-6 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={computed.weightChart}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="date" {...chartAxis} tickLine={false} />
-                <YAxis domain={["dataMin - 1", "dataMax + 1"]} {...chartAxis} tickLine={false} width={40} />
-                <Tooltip content={<ChartTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="Peso"
-                  stroke="var(--muted-foreground)"
-                  strokeWidth={1}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Media 7g"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </section>
+      {(only === undefined || only === "charts" || only === "weight") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Andamento peso — 30 giorni</p>
+          {computed.weightChart.length < 2 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Servono almeno due check-in con il peso per disegnare il trend.
+            </p>
+          ) : (
+            <div className="mt-6 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={computed.weightChart}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="date" {...chartAxis} tickLine={false} />
+                  <YAxis domain={["dataMin - 1", "dataMax + 1"]} {...chartAxis} tickLine={false} width={40} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="Peso"
+                    stroke="var(--muted-foreground)"
+                    strokeWidth={1}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Media 7g"
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Volume chart */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
-        <p className="label-caps">Volume allenamento — serie per gruppo</p>
-        {computed.activeGroups.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Nessuna serie registrata nelle ultime 6 settimane.
-          </p>
-        ) : (
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={computed.volumeChart}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="week" {...chartAxis} tickLine={false} />
-                <YAxis {...chartAxis} tickLine={false} width={30} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: "color-mix(in oklch, var(--muted) 40%, transparent)" }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                {computed.activeGroups.map((g) => (
-                  <Bar key={g} dataKey={g} stackId="v" fill={GROUP_COLORS[g]} />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </section>
+      {(only === undefined || only === "charts" || only === "volume") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Volume allenamento — serie per gruppo</p>
+          {computed.activeGroups.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Nessuna serie registrata nelle ultime 6 settimane.
+            </p>
+          ) : (
+            <div className="mt-6 h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={computed.volumeChart}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="week" {...chartAxis} tickLine={false} />
+                  <YAxis {...chartAxis} tickLine={false} width={30} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "color-mix(in oklch, var(--muted) 40%, transparent)" }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {computed.activeGroups.map((g) => (
+                    <Bar key={g} dataKey={g} stackId="v" fill={GROUP_COLORS[g]} />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Strength trend */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
-        <p className="label-caps">Trend forza per esercizio</p>
-        {computed.strength.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Logga qualche allenamento per vedere il trend di forza.
-          </p>
-        ) : (
-          <div className="mt-4 divide-y divide-border">
-            {computed.strength.map((ex) => (
-              <div key={ex.name} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm">{ex.name}</p>
-                  <p className="num mt-1 text-xs text-muted-foreground">
-                    {ex.entries.map((e) => fmt(e.topWeight)).join(" · ")} kg
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">
-                    carico massimo per sessione (ultime {ex.entries.length})
-                  </p>
+      {(only === undefined || only === "charts" || only === "strength") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Trend forza per esercizio</p>
+          {computed.strength.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Logga qualche allenamento per vedere il trend di forza.
+            </p>
+          ) : (
+            <div className="mt-4 divide-y divide-border">
+              {computed.strength.map((ex) => (
+                <div key={ex.name} className="flex items-center justify-between gap-4 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm">{ex.name}</p>
+                    <p className="num mt-1 text-xs text-muted-foreground">
+                      {ex.entries.map((e) => fmt(e.topWeight)).join(" · ")} kg
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      carico massimo per sessione (ultime {ex.entries.length})
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="num text-xs text-muted-foreground">
+                      top {fmt(ex.last.topWeight)} kg
+                    </span>
+                    <span
+                      className={
+                        ex.trend === "up"
+                          ? "text-emerald-500"
+                          : ex.trend === "down"
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                      }
+                    >
+                      {ex.trend === "up" ? "↑" : ex.trend === "down" ? "↓" : "→"}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="num text-xs text-muted-foreground">
-                    top {fmt(ex.last.topWeight)} kg
-                  </span>
-                  <span
-                    className={
-                      ex.trend === "up"
-                        ? "text-emerald-500"
-                        : ex.trend === "down"
-                          ? "text-destructive"
-                          : "text-muted-foreground"
-                    }
-                  >
-                    {ex.trend === "up" ? "↑" : ex.trend === "down" ? "↓" : "→"}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
