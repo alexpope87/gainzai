@@ -369,39 +369,41 @@ export function DashboardMetrics({
       </div>
 
       {/* Weight chart */}
-      <section className={`border border-border p-5 ${only && only !== "weight" && only !== "charts" ? "hidden" : ""}`}>
-        <p className="label-caps">Andamento peso — 30 giorni</p>
-        {computed.weightChart.length < 2 ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            Servono almeno due check-in con il peso per disegnare il trend.
-          </p>
-        ) : (
-          <div className="mt-6 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={computed.weightChart}>
-                <CartesianGrid stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="date" {...chartAxis} tickLine={false} />
-                <YAxis domain={["dataMin - 1", "dataMax + 1"]} {...chartAxis} tickLine={false} width={40} />
-                <Tooltip content={<ChartTooltip />} />
-                <Line
-                  type="monotone"
-                  dataKey="Peso"
-                  stroke="var(--muted-foreground)"
-                  strokeWidth={1}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Media 7g"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </section>
+      {(only === undefined || only === "charts" || only === "weight") && (
+        <section className="border border-border p-5">
+          <p className="label-caps">Andamento peso — 30 giorni</p>
+          {computed.weightChart.length < 2 ? (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Servono almeno due check-in con il peso per disegnare il trend.
+            </p>
+          ) : (
+            <div className="mt-6 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={computed.weightChart}>
+                  <CartesianGrid stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="date" {...chartAxis} tickLine={false} />
+                  <YAxis domain={["dataMin - 1", "dataMax + 1"]} {...chartAxis} tickLine={false} width={40} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="Peso"
+                    stroke="var(--muted-foreground)"
+                    strokeWidth={1}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Media 7g"
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Volume chart */}
       <section className={`border border-border p-5 ${only && only !== "volume" && only !== "charts" ? "hidden" : ""}`}>
