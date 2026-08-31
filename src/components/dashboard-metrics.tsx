@@ -404,7 +404,7 @@ export function DashboardMetrics({
       </section>
 
       {/* Volume chart */}
-      <section className={`border border-border p-5 ${only === "metrics" ? "hidden" : ""}`}>
+      <section className={`border border-border p-5 ${only && only !== "volume" && only !== "charts" ? "hidden" : ""}`}>
         <p className="label-caps">Volume allenamento — serie per gruppo</p>
         {computed.activeGroups.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
