@@ -26,7 +26,7 @@ function ProgressPage() {
   const [active, setActive] = useState<TabKey>("weight");
 
   return (
-    <main className="mx-auto flex h-[calc(100dvh-5rem)] max-w-5xl flex-col px-4 pt-4 pb-24">
+    <main className="mx-auto flex h-[calc(100dvh-4.5rem)] max-w-5xl flex-col px-4 pt-4 pb-4">
       <div className="grid grid-cols-3 border-b border-border">
         {TABS.map((tab) => {
           const isActive = active === tab.key;
