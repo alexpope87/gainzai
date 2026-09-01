@@ -30,15 +30,25 @@ const schema = z.object({
     .int()
     .min(30, { message: "Target proteine non valido" })
     .max(500),
+  target_carbs_g: z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.coerce.number().int().min(0).max(1500).nullable(),
+  ),
+  target_fat_g: z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.coerce.number().int().min(0).max(500).nullable(),
+  ),
 });
 
 const fields = [
-  { key: "name", label: "Nome", type: "text", unit: "", placeholder: "Marco" },
-  { key: "age", label: "Età", type: "number", unit: "anni", placeholder: "28" },
-  { key: "height_cm", label: "Altezza", type: "number", unit: "cm", placeholder: "178" },
-  { key: "weight_kg", label: "Peso attuale", type: "number", unit: "kg", placeholder: "82.4" },
-  { key: "target_kcal", label: "Target calorico", type: "number", unit: "kcal / giorno", placeholder: "2900" },
-  { key: "target_protein_g", label: "Target proteine", type: "number", unit: "g / giorno", placeholder: "180" },
+  { key: "name", label: "Nome", type: "text", unit: "", placeholder: "Marco", required: true },
+  { key: "age", label: "Età", type: "number", unit: "anni", placeholder: "28", required: true },
+  { key: "height_cm", label: "Altezza", type: "number", unit: "cm", placeholder: "178", required: true },
+  { key: "weight_kg", label: "Peso attuale", type: "number", unit: "kg", placeholder: "82.4", required: true },
+  { key: "target_kcal", label: "Target calorico", type: "number", unit: "kcal / giorno", placeholder: "2900", required: true },
+  { key: "target_protein_g", label: "Target proteine", type: "number", unit: "g / giorno", placeholder: "180", required: true },
+  { key: "target_carbs_g", label: "Target carboidrati", type: "number", unit: "g / giorno", placeholder: "350", required: false },
+  { key: "target_fat_g", label: "Target grassi", type: "number", unit: "g / giorno", placeholder: "90", required: false },
 ] as const;
 
 type FormState = Record<(typeof fields)[number]["key"], string>;
@@ -52,6 +62,8 @@ function Onboarding() {
     weight_kg: "",
     target_kcal: "",
     target_protein_g: "",
+    target_carbs_g: "",
+    target_fat_g: "",
   });
   const [loading, setLoading] = useState(false);
 
