@@ -85,6 +85,10 @@ function Onboarding() {
         target_kcal: data.target_kcal != null ? String(data.target_kcal) : f.target_kcal,
         target_protein_g:
           data.target_protein_g != null ? String(data.target_protein_g) : f.target_protein_g,
+        target_carbs_g:
+          data.target_carbs_g != null ? String(data.target_carbs_g) : f.target_carbs_g,
+        target_fat_g:
+          data.target_fat_g != null ? String(data.target_fat_g) : f.target_fat_g,
       }));
     })();
   }, [navigate]);
