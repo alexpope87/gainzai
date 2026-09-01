@@ -50,6 +50,8 @@ function ProfilePage() {
     ["Peso iniziale", profile?.weight_kg != null ? `${profile.weight_kg} kg` : "—"],
     ["Target kcal", profile?.target_kcal != null ? `${profile.target_kcal} kcal` : "—"],
     ["Target proteine", profile?.target_protein_g != null ? `${profile.target_protein_g} g` : "—"],
+    ["Target carboidrati", profile?.target_carbs_g != null ? `${profile.target_carbs_g} g` : "—"],
+    ["Target grassi", profile?.target_fat_g != null ? `${profile.target_fat_g} g` : "—"],
   ];
 
   return (

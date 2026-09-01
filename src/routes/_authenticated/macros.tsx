@@ -152,27 +152,17 @@ function Macros() {
 
   const targetKcal = profile?.target_kcal ?? null;
   const targetProt = profile?.target_protein_g ?? null;
-  const remKcal = targetKcal != null ? targetKcal - total.kcal : null;
-  const remProt = targetProt != null ? targetProt - total.protein_g : null;
+  const targetCarbs = profile?.target_carbs_g ?? null;
+  const targetFat = profile?.target_fat_g ?? null;
 
-  const bars = [
+  const deltas = [
     { label: "Kcal", value: total.kcal, target: targetKcal, unit: "kcal" },
     { label: "Proteine", value: total.protein_g, target: targetProt, unit: "g" },
-    { label: "Carboidrati", value: total.carbs_g, target: null, unit: "g" },
-    { label: "Grassi", value: total.fat_g, target: null, unit: "g" },
+    { label: "Carboidrati", value: total.carbs_g, target: targetCarbs, unit: "g" },
+    { label: "Grassi", value: total.fat_g, target: targetFat, unit: "g" },
   ];
 
-  function advice() {
-    if (remKcal == null || remProt == null)
-      return "Imposta i target in onboarding per ricevere i consigli sul residuo giornaliero.";
-    if (remKcal <= 0 && remProt <= 0)
-      return "Target raggiunti. Da qui in poi tieni leggero: acqua, verdura, eventualmente una fonte proteica magra.";
-    if (remProt > 0 && remKcal <= 100)
-      return `Ti mancano ${r(remProt)} g di proteine ma hai quasi finito le kcal: punta su fonti magre — albumi, fiocchi di latte, petto di pollo o un whey in acqua.`;
-    if (remProt <= 0)
-      return `Proteine a posto. Restano ${r(remKcal)} kcal: completale con carboidrati (riso, pane, frutta) o grassi buoni.`;
-    return `Mancano ${r(remKcal)} kcal e ${r(remProt)} g di proteine: una porzione da ~${Math.max(100, Math.round((remProt / 30) * 100))} g di fonte proteica magra più un contorno di carboidrati chiude la giornata.`;
-  }
+  const bars = deltas;
 
   return (
     <main className="min-h-screen bg-background">
