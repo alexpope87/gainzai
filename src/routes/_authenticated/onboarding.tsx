@@ -144,7 +144,7 @@ function Onboarding() {
                 value={form[f.key]}
                 onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                 className={f.type === "number" ? "num" : undefined}
-                required
+                required={f.required}
               />
             </div>
           ))}
