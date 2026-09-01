@@ -280,6 +280,8 @@ export type Database = {
           id: string
           name: string | null
           onboarded: boolean
+          target_carbs_g: number | null
+          target_fat_g: number | null
           target_kcal: number | null
           target_protein_g: number | null
           updated_at: string
@@ -292,6 +294,8 @@ export type Database = {
           id: string
           name?: string | null
           onboarded?: boolean
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
           updated_at?: string
@@ -304,6 +308,8 @@ export type Database = {
           id?: string
           name?: string | null
           onboarded?: boolean
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
           updated_at?: string

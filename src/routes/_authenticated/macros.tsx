@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -152,27 +152,17 @@ function Macros() {
 
   const targetKcal = profile?.target_kcal ?? null;
   const targetProt = profile?.target_protein_g ?? null;
-  const remKcal = targetKcal != null ? targetKcal - total.kcal : null;
-  const remProt = targetProt != null ? targetProt - total.protein_g : null;
+  const targetCarbs = profile?.target_carbs_g ?? null;
+  const targetFat = profile?.target_fat_g ?? null;
 
-  const bars = [
+  const deltas = [
     { label: "Kcal", value: total.kcal, target: targetKcal, unit: "kcal" },
     { label: "Proteine", value: total.protein_g, target: targetProt, unit: "g" },
-    { label: "Carboidrati", value: total.carbs_g, target: null, unit: "g" },
-    { label: "Grassi", value: total.fat_g, target: null, unit: "g" },
+    { label: "Carboidrati", value: total.carbs_g, target: targetCarbs, unit: "g" },
+    { label: "Grassi", value: total.fat_g, target: targetFat, unit: "g" },
   ];
 
-  function advice() {
-    if (remKcal == null || remProt == null)
-      return "Imposta i target in onboarding per ricevere i consigli sul residuo giornaliero.";
-    if (remKcal <= 0 && remProt <= 0)
-      return "Target raggiunti. Da qui in poi tieni leggero: acqua, verdura, eventualmente una fonte proteica magra.";
-    if (remProt > 0 && remKcal <= 100)
-      return `Ti mancano ${r(remProt)} g di proteine ma hai quasi finito le kcal: punta su fonti magre — albumi, fiocchi di latte, petto di pollo o un whey in acqua.`;
-    if (remProt <= 0)
-      return `Proteine a posto. Restano ${r(remKcal)} kcal: completale con carboidrati (riso, pane, frutta) o grassi buoni.`;
-    return `Mancano ${r(remKcal)} kcal e ${r(remProt)} g di proteine: una porzione da ~${Math.max(100, Math.round((remProt / 30) * 100))} g di fonte proteica magra più un contorno di carboidrati chiude la giornata.`;
-  }
+  const bars = deltas;
 
   return (
     <main className="min-h-screen bg-background">
@@ -219,7 +209,32 @@ function Macros() {
           </div>
           <div className="border-t border-border p-4">
             <p className="label-caps">Cosa manca</p>
-            <p className="mt-2 text-sm text-muted-foreground">{advice()}</p>
+            {deltas.some((d) => d.target == null) ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Imposta tutti i target per vedere il residuo giornaliero completo.{" "}
+                <Link to="/profile" className="text-primary underline underline-offset-4">
+                  Imposta target
+                </Link>
+              </p>
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {deltas.map((d) => {
+                  const rem = Math.round(d.target! - d.value);
+                  return (
+                    <div key={d.label}>
+                      <p className="label-caps">{d.label}</p>
+                      <p className="num mt-1 text-lg">
+                        {rem > 0 ? rem : 0}
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          {d.unit}
+                          {rem <= 0 ? " ✓" : ""}
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
