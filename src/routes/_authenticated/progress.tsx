@@ -1,5 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { DashboardMetrics } from "@/components/dashboard-metrics";
+
+type TabKey = "weight" | "volume" | "strength";
+
+const TABS: Array<{ key: TabKey; label: string }> = [
+  { key: "weight", label: "PESO" },
+  { key: "volume", label: "VOLUME" },
+  { key: "strength", label: "FORZA" },
+];
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -14,16 +23,35 @@ export const Route = createFileRoute("/_authenticated/progress")({
 });
 
 function ProgressPage() {
-  return (
-    <main className="mx-auto max-w-5xl px-6 pt-10 pb-24">
-      <p className="label-caps">Progressi</p>
-      <h1 className="mt-4 text-3xl font-semibold">I tuoi numeri</h1>
+  const [active, setActive] = useState<TabKey>("weight");
 
-      <div className="mt-8 grid gap-4">
-        <DashboardMetrics only="weight" />
-        <DashboardMetrics only="volume" />
-        <DashboardMetrics only="strength" />
+  return (
+    <main className="mx-auto flex h-[calc(100dvh-4.5rem)] max-w-5xl flex-col px-4 pt-4 pb-4">
+      <div className="grid grid-cols-3 border-b border-border">
+        {TABS.map((tab) => {
+          const isActive = active === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActive(tab.key)}
+              className={`relative py-3 text-center text-sm font-semibold tracking-wide transition-colors ${
+                isActive ? "text-[#00FF87]" : "text-muted-foreground"
+              }`}
+              aria-pressed={isActive}
+            >
+              {tab.label}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#00FF87]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex-1 overflow-y-auto pt-4">
+        <DashboardMetrics only={active} />
       </div>
     </main>
   );
 }
+
