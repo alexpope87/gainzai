@@ -209,7 +209,32 @@ function Macros() {
           </div>
           <div className="border-t border-border p-4">
             <p className="label-caps">Cosa manca</p>
-            <p className="mt-2 text-sm text-muted-foreground">{advice()}</p>
+            {deltas.some((d) => d.target == null) ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Imposta tutti i target per vedere il residuo giornaliero completo.{" "}
+                <Link to="/profile" className="text-primary underline underline-offset-4">
+                  Imposta target
+                </Link>
+              </p>
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {deltas.map((d) => {
+                  const rem = Math.round(d.target! - d.value);
+                  return (
+                    <div key={d.label}>
+                      <p className="label-caps">{d.label}</p>
+                      <p className="num mt-1 text-lg">
+                        {rem > 0 ? rem : 0}
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          {d.unit}
+                          {rem <= 0 ? " ✓" : ""}
+                        </span>
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
 
