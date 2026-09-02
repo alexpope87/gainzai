@@ -2,17 +2,23 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const Input = z.object({
+const FileInput = z.object({
   fileName: z.string().min(1),
   mimeType: z.string().min(1),
   dataUrl: z.string().optional(),
   text: z.string().optional(),
 });
 
+const Input = z.union([
+  FileInput,
+  z.object({ files: z.array(FileInput).min(1).max(4) }),
+]);
+
 const SYSTEM = `Sei un assistente che legge schede di allenamento per bodybuilder e le converte in JSON.
 Rispondi SOLO con JSON valido nel formato:
 {"program_name": string, "days": [{"name": string, "exercises": [{"name": string, "target_sets": number, "target_reps_min": number, "target_reps_max": number, "target_rir": number|null, "notes": string|null}]}]}
-Regole: mantieni l'ordine originale; i nomi degli esercizi in italiano come nella scheda; se le reps sono un numero singolo usa lo stesso valore per min e max; se il RIR non è indicato usa null; non inventare esercizi non presenti.`;
+Regole: mantieni l'ordine originale; i nomi degli esercizi in italiano come nella scheda; se le reps sono un numero singolo usa lo stesso valore per min e max; se il RIR non è indicato usa null; non inventare esercizi non presenti.
+Se ricevi più file/immagini, ognuno può contenere uno o più giorni: uniscili tutti in UNA SOLA scheda, aggiungendo un Day per ogni giorno trovato, nell'ordine in cui compaiono i file. Non duplicare i Day.`;
 
 export const parseProgramFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -21,25 +27,37 @@ export const parseProgramFile = createServerFn({ method: "POST" })
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("AI non configurata");
 
+    const files = "files" in data ? data.files : [data];
+
     const content: Array<Record<string, unknown>> = [
       {
         type: "text",
-        text: data.text
-          ? `Estrai la struttura da questa scheda (file: ${data.fileName}):\n\n${data.text.slice(0, 60000)}`
-          : `Estrai la struttura da questa scheda di allenamento (file: ${data.fileName}).`,
+        text:
+          files.length > 1
+            ? `Estrai la struttura di allenamento da questi ${files.length} file e uniscili in una sola scheda con più Day.`
+            : `Estrai la struttura da questa scheda di allenamento (file: ${files[0]!.fileName}).`,
       },
     ];
 
-    if (data.dataUrl) {
-      if (data.mimeType.startsWith("image/")) {
-        content.push({ type: "image_url", image_url: { url: data.dataUrl } });
-      } else {
+    for (const f of files) {
+      if (f.text) {
         content.push({
-          type: "file",
-          file: { filename: data.fileName, file_data: data.dataUrl },
+          type: "text",
+          text: `# File: ${f.fileName}\n${f.text.slice(0, 60000)}`,
         });
+      } else if (f.dataUrl) {
+        if (f.mimeType.startsWith("image/")) {
+          content.push({ type: "text", text: `# File: ${f.fileName}` });
+          content.push({ type: "image_url", image_url: { url: f.dataUrl } });
+        } else {
+          content.push({
+            type: "file",
+            file: { filename: f.fileName, file_data: f.dataUrl },
+          });
+        }
       }
     }
+
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
