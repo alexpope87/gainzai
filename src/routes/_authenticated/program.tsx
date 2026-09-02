@@ -279,11 +279,12 @@ function ProgramPage() {
           <input
             ref={fileRef}
             type="file"
+            multiple
             accept=".pdf,.xlsx,.xls,.csv,image/*"
             className="hidden"
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void handleFile(f);
+              const fs = Array.from(e.target.files ?? []);
+              if (fs.length > 0) void handleFiles(fs);
             }}
           />
           <Button
@@ -293,7 +294,11 @@ function ProgramPage() {
           >
             {parsing ? "Lettura in corso…" : "Carica scheda"}
           </Button>
-          <p className="label-caps mt-3">PDF · Excel · CSV · Foto</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Puoi caricare più file per una scheda con più giorni (fino a 4).
+          </p>
+          <p className="label-caps mt-2">PDF · Excel · CSV · Foto</p>
+
         </div>
 
         <section className="mt-10">
