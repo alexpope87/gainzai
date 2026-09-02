@@ -106,35 +106,39 @@ function ProgramPage() {
   }, [loadActive]);
 
 
-  async function handleFile(file: File) {
+  async function buildPayload(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    if (["xlsx", "xls", "csv"].includes(ext)) {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const text = wb.SheetNames.map(
+        (n) => `# ${n}\n${XLSX.utils.sheet_to_csv(wb.Sheets[n]!)}`,
+      ).join("\n\n");
+      return { fileName: file.name, mimeType: file.type || "text/csv", text };
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Lettura file fallita"));
+      reader.readAsDataURL(file);
+    });
+    return {
+      fileName: file.name,
+      mimeType: file.type || "application/pdf",
+      dataUrl,
+    };
+  }
+
+  async function handleFiles(fileList: File[]) {
     setSaved(false);
     setParsing(true);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-      let payload: { fileName: string; mimeType: string; dataUrl?: string; text?: string };
-
-      if (["xlsx", "xls", "csv"].includes(ext)) {
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: "array" });
-        const text = wb.SheetNames.map(
-          (n) => `# ${n}\n${XLSX.utils.sheet_to_csv(wb.Sheets[n]!)}`,
-        ).join("\n\n");
-        payload = { fileName: file.name, mimeType: file.type || "text/csv", text };
-      } else {
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = () => reject(new Error("Lettura file fallita"));
-          reader.readAsDataURL(file);
-        });
-        payload = {
-          fileName: file.name,
-          mimeType: file.type || "application/pdf",
-          dataUrl,
-        };
+      if (fileList.length > 4) {
+        toast.error("Massimo 4 file per scheda");
+        return;
       }
-
-      const result = await parse({ data: payload });
+      const files = await Promise.all(fileList.map(buildPayload));
+      const result = await parse({ data: { files } });
       if (result.program_name) setProgramName(result.program_name);
       setDays(
         result.days.map((d) => ({
@@ -148,7 +152,7 @@ function ProgramPage() {
           })),
         })),
       );
-      toast.success(`Estratti ${result.days.length} Day`);
+      toast.success(`Estratti ${result.days.length} Day da ${files.length} file`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Lettura fallita");
     } finally {
@@ -156,6 +160,7 @@ function ProgramPage() {
       if (fileRef.current) fileRef.current.value = "";
     }
   }
+
 
   function updateEx(di: number, ei: number, patch: Partial<Ex>) {
     setDays((prev) =>
