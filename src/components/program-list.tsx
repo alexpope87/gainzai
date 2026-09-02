@@ -110,7 +110,11 @@ export function ProgramList({
           key={p.id}
           className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div className="min-w-0">
+          <Link
+            to="/programs/$id"
+            params={{ id: p.id }}
+            className="min-w-0 flex-1 transition-opacity hover:opacity-70"
+          >
             <div className="flex flex-wrap items-center gap-2">
               <p className="truncate text-sm font-medium">{p.name}</p>
               {p.is_active && !p.archived_at && (
@@ -130,9 +134,10 @@ export function ProgramList({
               )}
             </div>
             <p className="num mt-1 text-xs text-muted-foreground">
-              Caricata il {formatDate(p.created_at)}
+              Caricata il {formatDate(p.created_at)} · tocca per modificare
             </p>
-          </div>
+          </Link>
+
 
           {!compact && (
             <div className="flex flex-wrap gap-2">
