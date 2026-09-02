@@ -25,14 +25,13 @@ export const Route = createFileRoute("/_authenticated/programs/$id")({
 });
 
 type Ex = {
-  id?: string;
   name: string;
   target_sets: number;
   target_reps_min: number;
   target_reps_max: number;
   target_rir: number | null;
 };
-type Day = { id?: string; name: string; exercises: Ex[] };
+type Day = { name: string; exercises: Ex[] };
 
 function emptyEx(): Ex {
   return { name: "", target_sets: 3, target_reps_min: 10, target_reps_max: 10, target_rir: null };
@@ -65,7 +64,6 @@ function ProgramDetailPage() {
       .order("order_index");
     setDays(
       (dayRows ?? []).map((d) => ({
-        id: d.id,
         name: d.name,
         exercises: [
           ...((d as unknown as { program_exercises: (Ex & { order_index: number })[] })
@@ -73,7 +71,6 @@ function ProgramDetailPage() {
         ]
           .sort((a, b) => a.order_index - b.order_index)
           .map((e) => ({
-            id: e.id,
             name: e.name,
             target_sets: e.target_sets,
             target_reps_min: e.target_reps_min,
