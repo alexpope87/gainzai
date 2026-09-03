@@ -24,6 +24,7 @@ import { Route as AuthenticatedProgramRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedWorkoutRouteImport } from './routes/_authenticated/workout'
 import { Route as AuthenticatedProgramsIdRouteImport } from './routes/_authenticated/programs.$id'
+import { Route as AuthenticatedWorkoutDayDayIdRouteImport } from './routes/_authenticated/workout.day.$dayId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -99,6 +100,12 @@ const AuthenticatedProgramsIdRoute = AuthenticatedProgramsIdRouteImport.update({
   path: '/programs/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkoutDayDayIdRoute =
+  AuthenticatedWorkoutDayDayIdRouteImport.update({
+    id: '/day/$dayId',
+    path: '/day/$dayId',
+    getParentRoute: () => AuthenticatedWorkoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,8 +120,9 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/program': typeof AuthenticatedProgramRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/workout': typeof AuthenticatedWorkoutRoute
+  '/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -129,8 +137,9 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/program': typeof AuthenticatedProgramRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/workout': typeof AuthenticatedWorkoutRoute
+  '/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,8 +156,9 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/program': typeof AuthenticatedProgramRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
-  '/_authenticated/workout': typeof AuthenticatedWorkoutRoute
+  '/_authenticated/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/_authenticated/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/_authenticated/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/workout'
     | '/programs/$id'
+    | '/workout/day/$dayId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/workout'
     | '/programs/$id'
+    | '/workout/day/$dayId'
   id:
     | '__root__'
     | '/'
@@ -200,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/workout'
     | '/_authenticated/programs/$id'
+    | '/_authenticated/workout/day/$dayId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,8 +329,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgramsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workout/day/$dayId': {
+      id: '/_authenticated/workout/day/$dayId'
+      path: '/day/$dayId'
+      fullPath: '/workout/day/$dayId'
+      preLoaderRoute: typeof AuthenticatedWorkoutDayDayIdRouteImport
+      parentRoute: typeof AuthenticatedWorkoutRoute
+    }
   }
 }
+
+interface AuthenticatedWorkoutRouteChildren {
+  AuthenticatedWorkoutDayDayIdRoute: typeof AuthenticatedWorkoutDayDayIdRoute
+}
+
+const AuthenticatedWorkoutRouteChildren: AuthenticatedWorkoutRouteChildren = {
+  AuthenticatedWorkoutDayDayIdRoute: AuthenticatedWorkoutDayDayIdRoute,
+}
+
+const AuthenticatedWorkoutRouteWithChildren =
+  AuthenticatedWorkoutRoute._addFileChildren(AuthenticatedWorkoutRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalysisRoute: typeof AuthenticatedAnalysisRoute
@@ -329,7 +360,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProgramRoute: typeof AuthenticatedProgramRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
-  AuthenticatedWorkoutRoute: typeof AuthenticatedWorkoutRoute
+  AuthenticatedWorkoutRoute: typeof AuthenticatedWorkoutRouteWithChildren
   AuthenticatedProgramsIdRoute: typeof AuthenticatedProgramsIdRoute
 }
 
@@ -343,7 +374,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProgramRoute: AuthenticatedProgramRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
-  AuthenticatedWorkoutRoute: AuthenticatedWorkoutRoute,
+  AuthenticatedWorkoutRoute: AuthenticatedWorkoutRouteWithChildren,
   AuthenticatedProgramsIdRoute: AuthenticatedProgramsIdRoute,
 }
 
