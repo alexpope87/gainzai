@@ -96,8 +96,8 @@ function Landing() {
     supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
   }, []);
 
-  const ctaTo = signedIn ? "/dashboard" : "/auth";
-  const ctaLabel = signedIn ? "Vai alla dashboard" : "Inizia ora — è gratis";
+  const ctaTo = "/auth";
+  const ctaLabel = "Iscriviti";
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] text-white">
