@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PageBack } from "@/components/page-back";
 
-export const Route = createFileRoute("/_authenticated/workout")({
+export const Route = createFileRoute("/_authenticated/workout/")({
   head: () => ({
     meta: [
       { title: "Log allenamento — GAINZ" },

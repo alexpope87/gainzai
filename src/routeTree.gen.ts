@@ -24,6 +24,7 @@ import { Route as AuthenticatedProgramRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
 import { Route as AuthenticatedWorkoutRouteImport } from './routes/_authenticated/workout'
 import { Route as AuthenticatedProgramsIdRouteImport } from './routes/_authenticated/programs.$id'
+import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDayDayIdRouteImport } from './routes/_authenticated/workout.day.$dayId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -100,6 +101,12 @@ const AuthenticatedProgramsIdRoute = AuthenticatedProgramsIdRouteImport.update({
   path: '/programs/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkoutIndexRoute =
+  AuthenticatedWorkoutIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedWorkoutRoute,
+  } as any)
 const AuthenticatedWorkoutDayDayIdRoute =
   AuthenticatedWorkoutDayDayIdRouteImport.update({
     id: '/day/$dayId',
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/progress': typeof AuthenticatedProgressRoute
   '/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/workout/': typeof AuthenticatedWorkoutIndexRoute
   '/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRoutesByTo {
@@ -137,8 +145,8 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/program': typeof AuthenticatedProgramRoute
   '/progress': typeof AuthenticatedProgressRoute
-  '/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/workout': typeof AuthenticatedWorkoutIndexRoute
   '/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRoutesById {
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/workout': typeof AuthenticatedWorkoutRouteWithChildren
   '/_authenticated/programs/$id': typeof AuthenticatedProgramsIdRoute
+  '/_authenticated/workout/': typeof AuthenticatedWorkoutIndexRoute
   '/_authenticated/workout/day/$dayId': typeof AuthenticatedWorkoutDayDayIdRoute
 }
 export interface FileRouteTypes {
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/workout'
     | '/programs/$id'
+    | '/workout/'
     | '/workout/day/$dayId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -192,8 +202,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/program'
     | '/progress'
-    | '/workout'
     | '/programs/$id'
+    | '/workout'
     | '/workout/day/$dayId'
   id:
     | '__root__'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/progress'
     | '/_authenticated/workout'
     | '/_authenticated/programs/$id'
+    | '/_authenticated/workout/'
     | '/_authenticated/workout/day/$dayId'
   fileRoutesById: FileRoutesById
 }
@@ -329,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgramsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workout/': {
+      id: '/_authenticated/workout/'
+      path: '/'
+      fullPath: '/workout/'
+      preLoaderRoute: typeof AuthenticatedWorkoutIndexRouteImport
+      parentRoute: typeof AuthenticatedWorkoutRoute
+    }
     '/_authenticated/workout/day/$dayId': {
       id: '/_authenticated/workout/day/$dayId'
       path: '/day/$dayId'
@@ -340,10 +358,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedWorkoutRouteChildren {
+  AuthenticatedWorkoutIndexRoute: typeof AuthenticatedWorkoutIndexRoute
   AuthenticatedWorkoutDayDayIdRoute: typeof AuthenticatedWorkoutDayDayIdRoute
 }
 
 const AuthenticatedWorkoutRouteChildren: AuthenticatedWorkoutRouteChildren = {
+  AuthenticatedWorkoutIndexRoute: AuthenticatedWorkoutIndexRoute,
   AuthenticatedWorkoutDayDayIdRoute: AuthenticatedWorkoutDayDayIdRoute,
 }
 
