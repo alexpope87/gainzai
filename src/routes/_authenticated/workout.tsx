@@ -27,6 +27,7 @@ type Program = { id: string; name: string; days: Day[] };
 type Day = { id: string; name: string; exercises: { id: string; name: string }[] };
 
 function WorkoutPage() {
+  const navigate = useNavigate();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [programId, setProgramId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
