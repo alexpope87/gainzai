@@ -211,7 +211,7 @@ function Landing() {
               variant="outline"
               className="mt-6 h-12 w-full border-neutral-700 text-white hover:bg-neutral-800"
             >
-              <Link to={ctaTo}>{signedIn ? "Vai alla dashboard" : "Inizia gratis"}</Link>
+              <Link to={ctaTo}>INIZIA GRATIS</Link>
             </Button>
           </div>
           {/* Premium */}
@@ -235,7 +235,7 @@ function Landing() {
               asChild
               className="mt-6 h-12 w-full bg-[#00FF87] font-bold text-black hover:bg-[#00FF87]/90"
             >
-              <Link to={ctaTo}>{signedIn ? "Vai alla dashboard" : "Inizia la prova gratuita"}</Link>
+              <Link to={ctaTo}>REGISTRATI</Link>
             </Button>
             <p className="mt-3 text-center text-xs text-neutral-500">
               7 giorni gratis, poi €4,99/mese. Cancelli quando vuoi.
@@ -276,13 +276,6 @@ function Landing() {
         <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
           Smetti di raccogliere dati. Inizia a progredire.
         </h2>
-        <Button
-          asChild
-          size="lg"
-          className="mt-8 h-14 bg-black px-10 text-base font-bold text-white hover:bg-neutral-900"
-        >
-          <Link to={ctaTo}>{ctaLabel}</Link>
-        </Button>
       </section>
 
       {/* 8. FOOTER */}
