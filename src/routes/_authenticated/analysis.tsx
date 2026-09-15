@@ -107,11 +107,20 @@ function AnalysisPage() {
 
         <Button
           className="mt-6 w-full sm:w-auto"
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || quotas?.analysis.remaining === 0}
           onClick={() => mutation.mutate()}
         >
           {mutation.isPending ? "Sto analizzando…" : "Genera analisi"}
         </Button>
+
+        {quotas ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {quotas.analysis.remaining > 0
+              ? `${quotas.analysis.remaining} di ${quotas.analysis.limit} analisi disponibili oggi`
+              : "Hai già generato l'analisi di oggi. Torna domani."}
+          </p>
+        ) : null}
+
 
         {current ? (
           <section className="mt-10 border border-border">
