@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { estimateMacros } from "@/lib/macros.functions";
+import { getAiQuotas } from "@/lib/rate-limit.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -92,10 +93,19 @@ function Macros() {
     },
   });
 
+  const loadQuotas = useServerFn(getAiQuotas);
+  const { data: quotas } = useQuery({
+    queryKey: ["ai-quotas"],
+    queryFn: async () => await loadQuotas({}),
+  });
+
   const estimateMutation = useMutation({
     mutationFn: async () => (await estimate({ data: { text } })) as Estimate,
     onSuccess: (d) => setDraft(d),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Stima fallita"),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["ai-quotas"] });
+    },
   });
 
   const saveMutation = useMutation({
@@ -277,6 +287,13 @@ function Macros() {
                 ? "Ricalcola macro"
                 : "Stima macro"}
           </Button>
+          {quotas ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {quotas.macros.remaining > 0
+                ? `${quotas.macros.remaining} di ${quotas.macros.limit} stime macro disponibili oggi`
+                : "Hai raggiunto il limite di stime macro per oggi."}
+            </p>
+          ) : null}
           {editingId && !draft && (
             <>
               <Button

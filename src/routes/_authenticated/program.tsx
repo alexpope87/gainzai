@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { parseProgramFile } from "@/lib/program.functions";
+import { getAiQuotas } from "@/lib/rate-limit.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,11 @@ function ProgramPage() {
 
   const queryClient = useQueryClient();
   const parse = useServerFn(parseProgramFile);
+  const loadQuotas = useServerFn(getAiQuotas);
+  const { data: quotas } = useQuery({
+    queryKey: ["ai-quotas"],
+    queryFn: async () => await loadQuotas({}),
+  });
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [programName, setProgramName] = useState("Scheda");
@@ -157,6 +163,7 @@ function ProgramPage() {
       toast.error(err instanceof Error ? err.message : "Lettura fallita");
     } finally {
       setParsing(false);
+      void queryClient.invalidateQueries({ queryKey: ["ai-quotas"] });
       if (fileRef.current) fileRef.current.value = "";
     }
   }
@@ -297,6 +304,13 @@ function ProgramPage() {
           <p className="mt-3 text-sm text-muted-foreground">
             Puoi caricare più file per una scheda con più giorni (fino a 4).
           </p>
+          {quotas ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {quotas.program.remaining > 0
+                ? `${quotas.program.remaining} di ${quotas.program.limit} caricamenti disponibili oggi`
+                : "Hai raggiunto il limite di caricamento schede per oggi."}
+            </p>
+          ) : null}
           <p className="label-caps mt-2">PDF · Excel · CSV · Foto</p>
 
         </div>

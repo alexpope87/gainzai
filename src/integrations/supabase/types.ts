@@ -56,6 +56,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_rate_limits: {
+        Row: {
+          count: number
+          created_at: string
+          day: string
+          endpoint: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          day?: string
+          endpoint: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          day?: string
+          endpoint?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       checkins: {
         Row: {
           created_at: string
@@ -550,6 +580,18 @@ export type Database = {
       bump_macro_estimate_hit: {
         Args: { _text_hash: string }
         Returns: undefined
+      }
+      consume_rate_limit: {
+        Args: { _endpoint: string; _limit: number; _user_id: string }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          used: number
+        }[]
+      }
+      get_rate_limit_usage: {
+        Args: { _endpoint: string; _user_id: string }
+        Returns: number
       }
       upsert_macro_estimate: {
         Args: {
