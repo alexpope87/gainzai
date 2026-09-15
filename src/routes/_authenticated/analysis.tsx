@@ -70,12 +70,22 @@ function AnalysisPage() {
     },
   });
 
+  const loadQuotas = useServerFn(getAiQuotas);
+  const { data: quotas } = useQuery({
+    queryKey: ["ai-quotas"],
+    queryFn: async () => await loadQuotas({}),
+  });
+
   const mutation = useMutation({
     mutationFn: async () => await run({}),
     onSuccess: (data) => {
       setSelected((data as AnalysisRow).id);
       void queryClient.invalidateQueries({ queryKey: ["analyses"] });
+      void queryClient.invalidateQueries({ queryKey: ["ai-quotas"] });
       toast.success("Analisi generata");
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["ai-quotas"] });
     },
     onError: (e: Error) => toast.error(e.message || "Generazione fallita"),
   });
