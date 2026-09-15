@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { generateAnalysis } from "@/lib/analysis.functions";
+import { getAiQuotas } from "@/lib/rate-limit.functions";
 import { Button } from "@/components/ui/button";
 import { PageBack } from "@/components/page-back";
 
