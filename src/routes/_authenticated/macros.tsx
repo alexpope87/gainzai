@@ -287,6 +287,13 @@ function Macros() {
                 ? "Ricalcola macro"
                 : "Stima macro"}
           </Button>
+          {quotas ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {quotas.macros.remaining > 0
+                ? `${quotas.macros.remaining} di ${quotas.macros.limit} stime macro disponibili oggi`
+                : "Hai raggiunto il limite di stime macro per oggi."}
+            </p>
+          ) : null}
           {editingId && !draft && (
             <>
               <Button
