@@ -163,6 +163,7 @@ function ProgramPage() {
       toast.error(err instanceof Error ? err.message : "Lettura fallita");
     } finally {
       setParsing(false);
+      void queryClient.invalidateQueries({ queryKey: ["ai-quotas"] });
       if (fileRef.current) fileRef.current.value = "";
     }
   }
