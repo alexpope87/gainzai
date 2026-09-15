@@ -23,9 +23,12 @@ Se ricevi più file/immagini, ognuno può contenere uno o più giorni: uniscili 
 export const parseProgramFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("AI non configurata");
+
+    const { consumeRateLimit } = await import("./rate-limit.server");
+    await consumeRateLimit(context.userId, "program");
 
     const files = "files" in data ? data.files : [data];
 

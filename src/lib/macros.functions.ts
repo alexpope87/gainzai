@@ -12,7 +12,7 @@ import {
 export const estimateMacros = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => MacroInput.parse(input))
-  .handler(async ({ data }): Promise<MacroEstimate> => {
+  .handler(async ({ data, context }): Promise<MacroEstimate> => {
     const normalized = normalizeMealText(data.text);
     const textHash = await hashMealText(normalized);
 
@@ -43,7 +43,10 @@ export const estimateMacros = createServerFn({ method: "POST" })
     }
 
 
-    // 2. Cache miss -> modello economico
+    // 2. Cache miss -> rate limit + modello economico
+    const { consumeRateLimit } = await import("./rate-limit.server");
+    await consumeRateLimit(context.userId, "macros");
+
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("AI non configurata");
 

@@ -38,6 +38,9 @@ export const generateAnalysis = createServerFn({ method: "POST" })
     if (!key) throw new Error("AI non configurata");
     const { supabase, userId } = context;
 
+    const { consumeRateLimit } = await import("./rate-limit.server");
+    await consumeRateLimit(userId, "analysis");
+
     const from = isoDaysAgo(6);
     const today = isoDaysAgo(0);
 
