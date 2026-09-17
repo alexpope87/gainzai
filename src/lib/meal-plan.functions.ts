@@ -2,12 +2,19 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const Input = z.object({
-  fileName: z.string().min(1),
-  mimeType: z.string().min(1),
-  dataUrl: z.string().optional(),
-  text: z.string().optional(),
-});
+const Input = z
+  .object({
+    fileName: z.string().trim().min(1).max(200),
+    mimeType: z
+      .string()
+      .trim()
+      .max(100)
+      .regex(/^(image\/[a-z0-9.+-]+|application\/pdf|text\/plain)$/i, "Tipo di file non supportato"),
+    // ~8 MB di base64
+    dataUrl: z.string().max(11_000_000).startsWith("data:").optional(),
+    text: z.string().max(200_000).optional(),
+  })
+  .refine((v) => Boolean(v.dataUrl || v.text), { message: "File vuoto" });
 
 const SYSTEM = `Sei un assistente che legge piani alimentari e li converte in JSON.
 Rispondi SOLO con JSON valido nel formato:
@@ -38,9 +45,13 @@ const Out = z.object({
 export const parseMealPlanFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("AI non configurata");
+
+    const { consumeRateLimit } = await import("./rate-limit.server");
+    await consumeRateLimit(context.userId, "mealplan");
+
 
     const content: Array<Record<string, unknown>> = [
       {
