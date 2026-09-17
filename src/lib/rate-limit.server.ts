@@ -2,6 +2,7 @@ export const RATE_LIMITS = {
   analysis: { limit: 1, message: "Hai già generato l'analisi di oggi. Torna domani." },
   macros: { limit: 20, message: "Hai raggiunto il limite di stime macro per oggi." },
   program: { limit: 3, message: "Hai raggiunto il limite di caricamento schede per oggi." },
+  mealplan: { limit: 3, message: "Hai raggiunto il limite di caricamento piani alimentari per oggi." },
 } as const;
 
 export type RateLimitEndpoint = keyof typeof RATE_LIMITS;
