@@ -1,26 +1,37 @@
-# GAINZ VER2
+# GAINZ — AI Bodybuilding Coach
 
-Crea questo nuovo progetto Lovable collegato al progetto Supabase GAINZ PROD già selezionato. Questo progetto servirà per migrare un'app Lovable esistente attualmente su Lovable Cloud. Non creare ancora funzionalità o struttura dell'app: per ora configura soltanto il nuovo progetto con Supabase abilitato.
+> Your data. Your gainz.
 
-This project was built with [Lovable](https://lovable.dev).
+GAINZ is a web app for serious bodybuilders that transforms training, nutrition and recovery data into concrete decisions — like a personal athletic coach.
 
-**Live app**: https://gainzai.lovable.app
+## The Problem
+Fitness apps collect data but leave users to interpret it themselves. GAINZ does the opposite: it analyzes everything and tells you exactly what to do tomorrow.
 
-## Build with Lovable
+## Features
+- **Daily check-in** — weight, sleep, energy, hunger and stress tracked in 60 seconds
+- **Workout log** — upload your training program, log sets in real time at the gym with automatic progression
+- **Macro tracking in natural language** — write what you ate in plain text, AI estimates kcal, protein, carbs and fat
+- **Evening AI analysis** — every evening the AI reads all your data and gives you 3 concrete decisions on weight, strength and recovery
+- **Progress dashboard** — weight trend, training volume by muscle group, strength trend per exercise
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/2ebd221a-c481-48ca-a871-70179d415ce0).
+## Tech Stack
+- **Frontend:** React + TypeScript + Tailwind CSS
+- **Backend:** Supabase (PostgreSQL + Auth + Storage)
+- **AI:** Lovable AI Gateway (GPT-5.6 for analysis, Gemini Flash for macro estimation and program extraction)
+- **Deploy:** Lovable (lovable.app)
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## Live App
+[gainzai.lovable.app](https://gainzai.lovable.app)
 
-## Development
+## Status
+🚧 Active development — Beta testing in progress
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Roadmap
+- [ ] Barcode scanner for packaged foods
+- [ ] Garmin / Apple Health integration
+- [ ] Monthly progress photos with AI comparison
+- [ ] Native iOS / Android app
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+## License
+All rights reserved © 2026 GAINZ
+
