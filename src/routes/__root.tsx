@@ -96,6 +96,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "GAINZ — Your data. Your gainz." },
       { name: "twitter:description", content: "Your data. Your gainz. Check-in, allenamenti, macro e analisi AI serale per bodybuilder seri." },
+      { name: "theme-color", content: "#0A0A0A" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "GAINZ" },
+      { name: "application-name", content: "GAINZ" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
