@@ -85,11 +85,6 @@ export function DashboardActions() {
                   {isDone ? "Completato oggi" : a.hint}
                 </span>
               </span>
-              {a.key === "meal-plan" ? (
-                <span className="text-2xl" aria-hidden="true">
-                  🥗
-                </span>
-              ) : null}
               {isDone && (
                 <span
                   className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
