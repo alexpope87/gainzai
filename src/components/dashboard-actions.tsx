@@ -73,7 +73,7 @@ export function DashboardActions() {
               type="button"
               onClick={() => navigate({ to: a.to })}
               className={
-                "relative flex min-h-[4.5rem] w-full items-center justify-between gap-4 rounded-lg border p-5 text-center transition-colors " +
+                "relative flex min-h-[4.5rem] w-full items-center justify-center gap-4 rounded-lg border p-5 text-center transition-colors " +
                 (isDone
                   ? "border-[#00FF87] bg-secondary text-foreground hover:bg-secondary/80"
                   : "border-border bg-secondary text-foreground hover:bg-secondary/80")
