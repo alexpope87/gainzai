@@ -50,7 +50,7 @@ function Dashboard() {
         </span>
       </header>
 
-      <h1 className="mt-10 text-3xl font-semibold">
+      <h1 className="mt-10 text-center text-3xl font-semibold">
         {profile?.name ? `Ciao ${profile.name}!` : "Ciao!"}
       </h1>
 
