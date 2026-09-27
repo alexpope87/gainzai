@@ -371,7 +371,7 @@ export function DashboardMetrics({
       {/* Weight chart */}
       {(only === undefined || only === "charts" || only === "weight") && (
         <section className="border border-border p-5">
-          <p className="label-caps">Andamento peso — 30 giorni</p>
+          <p className="label-caps">VARIAZIONE PESO — 30 GIORNI</p>
           {computed.weightChart.length < 2 ? (
             <p className="mt-4 text-sm text-muted-foreground">
               Servono almeno due check-in con il peso per disegnare il trend.
