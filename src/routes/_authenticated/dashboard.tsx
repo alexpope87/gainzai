@@ -43,15 +43,14 @@ function Dashboard() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 pt-6 pb-10">
-      <header className="flex flex-col">
-        <BrandLogo className="text-base" />
+      <header className="flex flex-col items-center text-center">
+        <BrandLogo className="text-[30px]" />
         <span className="mt-1 text-xs font-medium tracking-tight text-muted-foreground">
           Your data. Your gainz.
         </span>
       </header>
 
-      <p className="label-caps mt-10">Oggi</p>
-      <h1 className="mt-4 text-3xl font-semibold">
+      <h1 className="mt-10 text-3xl font-semibold">
         {profile?.name ? `Ciao ${profile.name}!` : "Ciao!"}
       </h1>
 

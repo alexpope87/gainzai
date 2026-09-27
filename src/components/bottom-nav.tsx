@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Zap, LineChart, Dumbbell, User } from "lucide-react";
 
 const TABS = [
-  { to: "/dashboard", label: "Oggi", icon: Zap, match: ["/dashboard", "/checkin", "/workout", "/macros", "/analysis"] },
+  { to: "/dashboard", label: "Home", icon: Zap, match: ["/dashboard", "/checkin", "/workout", "/macros", "/analysis"] },
   { to: "/progress", label: "Progressi", icon: LineChart, match: ["/progress"] },
   { to: "/program", label: "Scheda", icon: Dumbbell, match: ["/program"] },
   { to: "/profile", label: "Profilo", icon: User, match: ["/profile", "/meal-plan", "/onboarding"] },
