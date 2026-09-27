@@ -8,11 +8,17 @@ function todayIso() {
 
 type ActionKey = "checkin" | "workout" | "macros" | "analysis";
 
-const ACTIONS: Array<{ key: ActionKey; label: string; hint: string; to: string }> = [
+const ACTIONS: Array<{
+  key: ActionKey | "meal-plan";
+  label: string;
+  hint: string;
+  to: string;
+}> = [
   { key: "checkin", label: "Check", hint: "Peso, sonno, energia", to: "/checkin" },
   { key: "workout", label: "Log Allenamento", hint: "Serie, reps, kg, RIR", to: "/workout" },
   { key: "macros", label: "Macros", hint: "Inserisci i tuoi pasti", to: "/macros" },
-  { key: "analysis", label: "Genera analisi", hint: "Report AI 7 giorni", to: "/analysis" },
+  { key: "meal-plan", label: "Piano Alimentare", hint: "Gestisci il tuo piano pasti", to: "/meal-plan" },
+  { key: "analysis", label: "Genera Analisi", hint: "Report AI 7 giorni", to: "/analysis" },
 ];
 
 export function DashboardActions() {
@@ -57,21 +63,33 @@ export function DashboardActions() {
 
   return (
     <section>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col gap-3">
         {ACTIONS.map((a) => {
-          const isDone = done?.[a.key] ?? false;
+          const isDone =
+            a.key !== "meal-plan" ? (done?.[a.key] ?? false) : false;
           return (
             <button
               key={a.key}
               type="button"
               onClick={() => navigate({ to: a.to })}
               className={
-                "relative flex min-h-[5.5rem] flex-col items-start justify-between rounded-lg border p-4 text-left transition-colors " +
+                "relative flex min-h-[4.5rem] w-full items-center justify-between gap-4 rounded-lg border p-4 text-left transition-colors " +
                 (isDone
                   ? "border-[#00FF87] bg-secondary text-foreground hover:bg-secondary/80"
                   : "border-border bg-secondary text-foreground hover:bg-secondary/80")
               }
             >
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold uppercase">{a.label}</span>
+                <span className="mt-1 text-xs text-muted-foreground">
+                  {isDone ? "Completato oggi" : a.hint}
+                </span>
+              </span>
+              {a.key === "meal-plan" ? (
+                <span className="text-2xl" aria-hidden="true">
+                  🥗
+                </span>
+              ) : null}
               {isDone && (
                 <span
                   className="absolute top-3 right-3 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
@@ -81,14 +99,6 @@ export function DashboardActions() {
                   ✓
                 </span>
               )}
-              <span className="text-sm font-semibold">{a.label}</span>
-              <span
-                className={
-                  "mt-2 text-xs " + (isDone ? "text-muted-foreground" : "text-muted-foreground")
-                }
-              >
-                {isDone ? "Completato oggi" : a.hint}
-              </span>
             </button>
           );
         })}
