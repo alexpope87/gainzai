@@ -18,7 +18,7 @@ const ACTIONS: Array<{
   { key: "workout", label: "Log Allenamento", hint: "Serie, reps, kg, RIR", to: "/workout" },
   { key: "macros", label: "Macros", hint: "Inserisci i tuoi pasti", to: "/macros" },
   { key: "meal-plan", label: "Piano Alimentare", hint: "Gestisci il tuo piano pasti", to: "/meal-plan" },
-  { key: "analysis", label: "Genera Analisi", hint: "Report AI 7 giorni", to: "/analysis" },
+  { key: "analysis", label: "GENERA ANALISI AI", hint: " Report settimanale", to: "/analysis" },
 ];
 
 export function DashboardActions() {
