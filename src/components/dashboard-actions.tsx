@@ -67,6 +67,7 @@ export function DashboardActions() {
         {ACTIONS.map((a) => {
           const isDone =
             a.key !== "meal-plan" ? (done?.[a.key] ?? false) : false;
+          const isAnalysis = a.key === "analysis";
           return (
             <button
               key={a.key}
@@ -74,9 +75,11 @@ export function DashboardActions() {
               onClick={() => navigate({ to: a.to })}
               className={
                 "relative flex min-h-[4.5rem] w-full items-center justify-center gap-4 rounded-lg border p-5 text-center transition-colors " +
-                (isDone
-                  ? "border-[#00FF87] bg-secondary text-foreground hover:bg-secondary/80"
-                  : "border-border bg-secondary text-foreground hover:bg-secondary/80")
+                (isAnalysis
+                  ? "border-[#00FF87] bg-[#1a1a1a] text-foreground hover:bg-[#222222]"
+                  : isDone
+                    ? "border-[#00FF87] bg-secondary text-foreground hover:bg-secondary/80"
+                    : "border-border bg-secondary text-foreground hover:bg-secondary/80")
               }
             >
               <span className="flex flex-col">
