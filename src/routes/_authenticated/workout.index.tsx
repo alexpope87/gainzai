@@ -88,7 +88,7 @@ function WorkoutPage() {
 
         {programs.length > 0 && (
           <div className="mt-8">
-            <p className="label-caps">Quale scheda stai usando?</p>
+            <p className="label-caps">SCHEDA ATTIVA:</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {programs.map((p) => {
                 const sel = p.id === programId;
@@ -128,7 +128,7 @@ function WorkoutPage() {
 
         {program && program.days.length > 0 && (
           <div className="mt-8">
-            <p className="label-caps">Che Day stai facendo?</p>
+            <p className="label-caps">SELEZIONA IL TUO ALLENAMENTO DI OGGI:</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {program.days.map((d) => (
                 <Link
