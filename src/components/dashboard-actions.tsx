@@ -83,7 +83,12 @@ export function DashboardActions() {
               }
             >
               <span className="flex flex-col">
-                <span className="text-sm font-semibold uppercase">{a.label}</span>
+                <span
+                  className="text-sm font-semibold uppercase"
+                  style={isAnalysis ? { color: "#00FF87" } : undefined}
+                >
+                  {a.label}
+                </span>
                 <span className="mt-1 text-xs text-muted-foreground">
                   {isDone ? "Completato oggi" : a.hint}
                 </span>
