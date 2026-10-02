@@ -27,12 +27,22 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
+// Public fallbacks (anon key is public by design; data protected by RLS).
+export const FALLBACK_SUPABASE_URL = 'https://iqddzlckdkmwignlmfhy.supabase.co';
+export const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxZGR6bGNrZGttd2lnbmxtZmh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNDM5NDUsImV4cCI6MjEwMjcxOTk0NX0.ugCnX00LjTLmNNuGKKErmR3yOkIiFIIDn-sCHs4UraU';
 
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  const SUPABASE_URL =
+    import.meta.env['VITE_SUPABASE_URL'] ||
+    (typeof process !== 'undefined' ? process.env['SUPABASE_URL'] : undefined) ||
+    FALLBACK_SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    (typeof process !== 'undefined' ? process.env['SUPABASE_PUBLISHABLE_KEY'] : undefined) ||
+    FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
