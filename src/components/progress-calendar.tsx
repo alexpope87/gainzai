@@ -170,15 +170,6 @@ export function ProgressCalendar() {
               } ${day.date === today && !selected ? "ring-1 ring-inset ring-border" : ""}`}
             >
               <span>{day.day}</span>
-              {day.dayLabels && (
-                <span
-                  className={`text-[9px] font-semibold leading-none ${
-                    selected ? "text-accent-foreground" : "text-accent"
-                  }`}
-                >
-                  {day.dayLabels}
-                </span>
-              )}
               {(hasWorkout || day.hasCheckin) && (
                 <span
                   className={`absolute bottom-1 size-1.5 rounded-full ${
