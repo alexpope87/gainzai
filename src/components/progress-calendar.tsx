@@ -21,10 +21,6 @@ function monthTitle(month: Date) {
   return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
-function dayLabelFromName(name: string | null | undefined) {
-  const match = name?.match(/(?:giorno|day)\s*(\d+)/i);
-  return match ? `D${match[1]}` : null;
-}
 
 export function ProgressCalendar() {
   const [month, setMonth] = useState(() => {
