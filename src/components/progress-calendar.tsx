@@ -21,6 +21,11 @@ function monthTitle(month: Date) {
   return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
+function dayLabelFromName(name: string | null | undefined) {
+  const match = name?.match(/(?:giorno|day)\s*(\d+)/i);
+  return match ? `D${match[1]}` : null;
+}
+
 export function ProgressCalendar() {
   const [month, setMonth] = useState(() => {
     const now = new Date();
@@ -94,14 +99,23 @@ export function ProgressCalendar() {
 
     const days = Array.from({ length: daysInMonth }, (_, index) => {
       const date = localISO(new Date(month.getFullYear(), month.getMonth(), index + 1));
+      const daySessions = (sessionsByDate.get(date) ?? []).map((session) => ({
+        ...session,
+        completedExercises: exerciseNamesBySession.get(session.id)?.size ?? 0,
+      }));
+      const labels = Array.from(
+        new Set(
+          daySessions
+            .map((session) => dayLabelFromName(session.day_name))
+            .filter((label): label is string => Boolean(label)),
+        ),
+      );
       return {
         day: index + 1,
         date,
         hasCheckin: checkinDates.has(date),
-        sessions: (sessionsByDate.get(date) ?? []).map((session) => ({
-          ...session,
-          completedExercises: exerciseNamesBySession.get(session.id)?.size ?? 0,
-        })),
+        sessions: daySessions,
+        dayLabels: labels.length === 0 ? "" : labels.length > 2 ? `${labels[0]}+` : labels.join("+"),
       };
     });
 
