@@ -174,7 +174,7 @@ export function ProgressCalendar() {
               type="button"
               variant="ghost"
               disabled={!hasWorkout}
-              aria-label={`${day.day} ${monthTitle(month)}${hasWorkout ? ", allenamento registrato" : day.hasCheckin ? ", check-in registrato" : ""}`}
+              aria-label={`${day.day} ${monthTitle(month)}${hasWorkout ? `, allenamento registrato${day.dayLabels ? ` (${day.dayLabels})` : ""}` : day.hasCheckin ? ", check-in registrato" : ""}`}
               aria-pressed={hasWorkout ? selected : undefined}
               onClick={() => setSelectedDate(day.date)}
               className={`relative flex aspect-square h-auto min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-none p-0 text-sm disabled:pointer-events-none disabled:opacity-100 ${
