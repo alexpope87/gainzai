@@ -177,14 +177,23 @@ export function ProgressCalendar() {
               aria-label={`${day.day} ${monthTitle(month)}${hasWorkout ? ", allenamento registrato" : day.hasCheckin ? ", check-in registrato" : ""}`}
               aria-pressed={hasWorkout ? selected : undefined}
               onClick={() => setSelectedDate(day.date)}
-              className={`relative aspect-square h-auto min-h-11 w-full rounded-none p-0 text-sm disabled:pointer-events-none disabled:opacity-100 ${
+              className={`relative flex aspect-square h-auto min-h-11 w-full flex-col items-center justify-center gap-0.5 rounded-none p-0 text-sm disabled:pointer-events-none disabled:opacity-100 ${
                 selected ? "bg-accent text-accent-foreground hover:bg-accent" : ""
               } ${day.date === today && !selected ? "ring-1 ring-inset ring-border" : ""}`}
             >
               <span>{day.day}</span>
+              {day.dayLabels && (
+                <span
+                  className={`text-[9px] font-semibold leading-none ${
+                    selected ? "text-accent-foreground" : "text-accent"
+                  }`}
+                >
+                  {day.dayLabels}
+                </span>
+              )}
               {(hasWorkout || day.hasCheckin) && (
                 <span
-                  className={`absolute bottom-1.5 size-1.5 rounded-full ${
+                  className={`absolute bottom-1 size-1.5 rounded-full ${
                     hasWorkout ? (selected ? "bg-accent-foreground" : "bg-accent") : "bg-muted-foreground"
                   }`}
                   aria-hidden="true"
